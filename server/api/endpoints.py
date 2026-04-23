@@ -111,21 +111,18 @@ async def him(request: Request):
 
 @router.post("/hydra/push_all")
 async def push_all_routers():
-    import base64
     from ..services.ssh_client import ssh_exec
     R, _, _, _, _ = _s()
-    cfg = load_hydra_config()
-    dc = generate_domain_conf(cfg)
-    il = generate_ip_list(cfg)
-    dc_b64 = base64.b64encode(dc.encode()).decode()
-    il_b64 = base64.b64encode(il.encode()).decode()
+    # Router fetches files from server via HTTP — avoids SSH command length limits
     cmd = (
-        f"HR_DIR=$([ -d /opt/etc/HydraRoute ] && echo /opt/etc/HydraRoute || echo /opt/etc/hydra); "
-        f"mkdir -p \"$HR_DIR\"; "
-        f"printf '%s' '{dc_b64}' | base64 -d > \"$HR_DIR/domain.conf\"; "
-        f"printf '%s' '{il_b64}' | base64 -d > \"$HR_DIR/ip.list\"; "
-        f"neo restart >/dev/null 2>&1; "
-        f"echo OK"
+        "SERVER=$(cat /opt/etc/server_url 2>/dev/null); "
+        "[ -z \"$SERVER\" ] && echo 'NO_SERVER_URL' && exit 1; "
+        "HR_DIR=$([ -d /opt/etc/HydraRoute ] && echo /opt/etc/HydraRoute || echo /opt/etc/hydra); "
+        "mkdir -p \"$HR_DIR\"; "
+        "curl -sf --connect-timeout 15 \"$SERVER/api/hydra/domain.conf\" -o \"$HR_DIR/domain.conf\" || { echo CURL_FAIL; exit 1; }; "
+        "curl -sf --connect-timeout 15 \"$SERVER/api/hydra/ip.list\" -o \"$HR_DIR/ip.list\"; "
+        "neo restart >/dev/null 2>&1; "
+        "echo OK"
     )
     results = []
     ok = failed = 0
