@@ -4,28 +4,30 @@ SERVER=$(cat /opt/etc/server_url 2>/dev/null); ROUTER=$(cat /opt/etc/router_name
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [$1] $2" >> /opt/var/log/watchdog.log; }
 [ -f "$LOCK" ] && kill -0 $(cat "$LOCK") 2>/dev/null && exit 0; echo $$ > "$LOCK"; trap "rm -f $LOCK" EXIT
 
-# Check a single URL through all VPN interfaces, then directly
-check_url() {
-  URL="$1"
+# TCP-only check (port 443) — bypasses anti-bot, works regardless of HTTP response
+# Tries through VPN interfaces first, then direct
+check_tcp() {
+  HOST="$1"
   for i in $(cat /opt/etc/vpn_list 2>/dev/null); do
     ip link show "$i" up 2>/dev/null | grep -q "UP" && \
-    curl -sf --connect-timeout 8 --max-time 15 --interface "$i" "$URL" -o /dev/null 2>/dev/null && return 0
+    curl -sf --connect-only --connect-timeout 8 --max-time 10 --interface "$i" "https://$HOST" 2>/dev/null && return 0
   done
-  curl -sf --connect-timeout 8 --max-time 15 "$URL" -o /dev/null 2>/dev/null
+  curl -sf --connect-only --connect-timeout 8 --max-time 10 "https://$HOST" 2>/dev/null
 }
 
-# Check VPN: tries canva, netflix — passes if ANY one is reachable
+# Check VPN: canva.com + instagram.com — both blocked in Russia without VPN
+# Passes if ANY one is reachable via TCP
 check_vpn() {
-  check_url "https://www.canva.com" && return 0
-  check_url "https://www.netflix.com" && return 0
+  check_tcp "www.canva.com"     && return 0
+  check_tcp "www.instagram.com" && return 0
   return 1
 }
 
-# Probe each site and return which ones failed (for detailed reporting)
+# Probe each site for detailed reporting
 probe_sites() {
   RESULT=""
-  check_url "https://www.canva.com"   && RESULT="$RESULT canva=OK"   || RESULT="$RESULT canva=FAIL"
-  check_url "https://www.netflix.com" && RESULT="$RESULT netflix=OK" || RESULT="$RESULT netflix=FAIL"
+  check_tcp "www.canva.com"     && RESULT="$RESULT canva=OK"     || RESULT="$RESULT canva=FAIL"
+  check_tcp "www.instagram.com" && RESULT="$RESULT instagram=OK" || RESULT="$RESULT instagram=FAIL"
   echo "$RESULT"
 }
 
