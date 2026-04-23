@@ -98,9 +98,17 @@ async def _handle(text):
             # Check sites from each router via SSH
             from ..main import routers as _all_r
             SITES = ["www.canva.com", "www.instagram.com", "www.netflix.com", "www.youtube.com"]
-            checks = "; ".join(
-                f'_c=$(curl -s -o /dev/null -w "%{{http_code}}" --connect-timeout 5 --max-time 10 -L https://{s} 2>/dev/null); [ "$_c" != "000" ] && [ -n "$_c" ] && echo "{s}=OK($_c)" || echo "{s}=FAIL"'
+            site_checks = "; ".join(
+                f'_c=$(curl -s -o /dev/null -w "%{{http_code}}" --connect-timeout 5 --max-time 10 --interface "$VPN_IF" -L https://{s} 2>/dev/null); [ "$_c" != "000" ] && [ -n "$_c" ] && echo "{s}=OK($_c)" || echo "{s}=FAIL"'
                 for s in SITES
+            )
+            checks = (
+                'VPN_IF=""; '
+                'for _i in $(cat /opt/etc/vpn_list 2>/dev/null) nwg0 nwg1 nwg2 nwg3; do '
+                '  ip link show "$_i" 2>/dev/null | grep -qi "state UP\\|,UP" && VPN_IF="$_i" && break; '
+                'done; '
+                'echo "VPN_IF=$VPN_IF"; '
+                + site_checks
             )
             lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
             for rname, rcfg in list(_all_r.items()):
@@ -112,16 +120,17 @@ async def _handle(text):
                 if not r["ok"]:
                     lines.append(f"⚠️ <b>{rname}</b>: нет SSH")
                     continue
-                site_lines = []
+                site_lines = []; vpn_if = "?"
                 for line in r["output"].splitlines():
                     line = line.strip()
+                    if line.startswith("VPN_IF="): vpn_if = line.split("=",1)[1]; continue
                     for s in SITES:
                         if line.startswith(s+"="):
                             val = line.split("=",1)[1]
                             ok = val.startswith("OK")
-                            label = val if ok else "FAIL"
-                            site_lines.append(f"  {'✅' if ok else '❌'} {s} <code>{label}</code>")
-                lines.append(f"📡 <b>{rname}</b>\n" + "\n".join(site_lines))
+                            site_lines.append(f"  {'✅' if ok else '❌'} {s} <code>{val}</code>")
+                vpn_label = f" via <code>{vpn_if}</code>" if vpn_if and vpn_if != "none" else " ⚠️ нет VPN"
+                lines.append(f"📡 <b>{rname}</b>{vpn_label}\n" + "\n".join(site_lines))
             return "\n\n".join(lines)
 
         # Test Telegram + Email

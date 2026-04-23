@@ -46,19 +46,33 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
         if not ip: continue
         user = rcfg.get("user") or config.SSH_USER
         password = rcfg.get("password") or config.SSH_PASS
-        # Build one-liner: check each site via TCP and report exit codes
-        checks = "; ".join(
-            f'_c=$(curl -s -o /dev/null -w "%{{http_code}}" --connect-timeout 5 --max-time 10 -L https://{s} 2>/dev/null); [ "$_c" != "000" ] && [ -n "$_c" ] && echo "{s}=OK($_c)" || echo "{s}=FAIL"'
+        # Auto-detect first UP VPN interface (nwg0-3), then check each site through it
+        site_checks = "; ".join(
+            f'_c=$(curl -s -o /dev/null -w "%{{http_code}}" --connect-timeout 5 --max-time 10 --interface "$VPN_IF" -L https://{s} 2>/dev/null); [ "$_c" != "000" ] && [ -n "$_c" ] && echo "{s}=OK($_c)" || echo "{s}=FAIL"'
             for s in sites
+        )
+        checks = (
+            'VPN_IF=""; '
+            'for _i in $(cat /opt/etc/vpn_list 2>/dev/null) nwg0 nwg1 nwg2 nwg3; do '
+            '  ip link show "$_i" 2>/dev/null | grep -qi "state UP\\|,UP" && VPN_IF="$_i" && break; '
+            'done; '
+            '[ -z "$VPN_IF" ] && echo "VPN_IF=none" || echo "VPN_IF=$VPN_IF"; '
+            + site_checks
         )
         r = await ssh_exec_verbose(ip, checks, user=user, password=password, timeout=60)
         site_results = {}
+        vpn_if = ""
         for line in r["output"].splitlines():
             line = line.strip()
+            if line.startswith("VPN_IF="):
+                vpn_if = line.split("=",1)[1]
+                continue
             for s in sites:
                 if line.startswith(s+"="):
                     val = line.split("=",1)[1]
                     site_results[s] = val.startswith("OK")
+        if vpn_if:
+            router_results[-1]["vpn_if"] = vpn_if
         router_results.append({"router": name, "ok": r["ok"], "sites": site_results, "error": "" if r["ok"] else r["output"][:100]})
     # Send summary to Telegram
     lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
@@ -66,8 +80,9 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
         if not rr["ok"]:
             lines.append(f"⚠️ <b>{rr['router']}</b>: нет SSH\n{rr['error']}")
             continue
-        site_line = "  ".join(f"{'✅' if v else '❌'} {k}" for k,v in rr["sites"].items())
-        lines.append(f"📡 <b>{rr['router']}</b>\n{site_line}")
+        vpn_label = f" via <code>{rr.get('vpn_if','?')}</code>" if rr.get('vpn_if') and rr.get('vpn_if') != 'none' else " ⚠️ нет VPN-интерфейса"
+        site_line = "\n".join(f"  {'✅' if v else '❌'} {k}" for k,v in rr["sites"].items())
+        lines.append(f"📡 <b>{rr['router']}</b>{vpn_label}\n{site_line}")
     await send_telegram("\n\n".join(lines))
     return {"results": router_results}
 

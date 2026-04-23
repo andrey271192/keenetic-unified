@@ -4,17 +4,17 @@ SERVER=$(cat /opt/etc/server_url 2>/dev/null); ROUTER=$(cat /opt/etc/router_name
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [$1] $2" >> /opt/var/log/watchdog.log; }
 [ -f "$LOCK" ] && kill -0 $(cat "$LOCK") 2>/dev/null && exit 0; echo $$ > "$LOCK"; trap "rm -f $LOCK" EXIT
 
-# HTTP status check — returns exit 0 if HTTP code != 000 (any response = reachable)
-# Tries through VPN interfaces first, then direct
+# HTTP status check through VPN interfaces (nwg0-nwg3 + vpn_list fallback)
+# Any HTTP response != 000 means the site is reachable
 check_tcp() {
   HOST="$1"
-  for i in $(cat /opt/etc/vpn_list 2>/dev/null); do
-    ip link show "$i" up 2>/dev/null | grep -q "UP" || continue
+  VPN_IFACES="$(cat /opt/etc/vpn_list 2>/dev/null) nwg0 nwg1 nwg2 nwg3"
+  for i in $VPN_IFACES; do
+    ip link show "$i" 2>/dev/null | grep -qi "state UP\|,UP" || continue
     _c=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 8 --max-time 15 --interface "$i" -L "https://$HOST" 2>/dev/null)
     [ "$_c" != "000" ] && [ -n "$_c" ] && return 0
   done
-  _c=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 8 --max-time 15 -L "https://$HOST" 2>/dev/null)
-  [ "$_c" != "000" ] && [ -n "$_c" ]
+  return 1
 }
 
 # Check VPN: canva.com + instagram.com — both blocked in Russia without VPN
