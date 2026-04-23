@@ -14,11 +14,10 @@ check_url() {
   curl -sf --connect-timeout 8 --max-time 15 "$URL" -o /dev/null 2>/dev/null
 }
 
-# Check VPN: tries canva, netflix, youtube — passes if ANY one is reachable
+# Check VPN: tries canva, netflix — passes if ANY one is reachable
 check_vpn() {
   check_url "https://www.canva.com" && return 0
   check_url "https://www.netflix.com" && return 0
-  check_url "https://www.youtube.com" && return 0
   return 1
 }
 
@@ -27,7 +26,6 @@ probe_sites() {
   RESULT=""
   check_url "https://www.canva.com"   && RESULT="$RESULT canva=OK"   || RESULT="$RESULT canva=FAIL"
   check_url "https://www.netflix.com" && RESULT="$RESULT netflix=OK" || RESULT="$RESULT netflix=FAIL"
-  check_url "https://www.youtube.com" && RESULT="$RESULT youtube=OK" || RESULT="$RESULT youtube=FAIL"
   echo "$RESULT"
 }
 
