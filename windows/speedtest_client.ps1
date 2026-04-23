@@ -1,3 +1,8 @@
+param(
+    [ValidateSet("sites","speed","all")]
+    [string]$Mode = "all"
+)
+
 $SERVER      = "http://SERVER_IP:8000"
 $ROUTER_NAME = "ROUTER"
 
@@ -98,39 +103,35 @@ function Check-Sites {
     return $results
 }
 
-# --- Run all checks ---
-Write-Host "Checking sites..."
-$sites = Check-Sites
-foreach ($s in $sites.Keys) {
-    $icon = if ($sites[$s]) { "OK" } else { "FAIL" }
-    Write-Host "  $icon $s"
+# --- Sites check (Mode: sites | all) ---
+if ($Mode -eq "sites" -or $Mode -eq "all") {
+    Write-Host "Checking sites..."
+    $sites = Check-Sites
+    foreach ($s in $sites.Keys) {
+        $icon = if ($sites[$s]) { "OK" } else { "FAIL" }
+        Write-Host "  $icon $s"
+    }
+    $sitesBody = @{ router = $ROUTER_NAME; sites = $sites } | ConvertTo-Json -Depth 3
+    try {
+        $siteResp = Invoke-RestMethod -Uri "$SERVER/api/push_sites" -Method POST -Body $sitesBody -ContentType "application/json"
+        Write-Host "Sites sent. restart_neo=$($siteResp.restart_neo)"
+    } catch { Write-Host "Sites send failed: $_" }
 }
 
-Write-Host "Running speedtest (VPN)..."
-$vpn = Run-ST
-
-Write-Host "Running RU speed..."
-$ru  = Run-RU
-
-Write-Host "VPN: down=$($vpn.down) up=$($vpn.up) ping=$($vpn.ping)"
-Write-Host "RU:  down=$($ru.down) ping=$($ru.ping)"
-
-# --- Send site results ---
-$sitesBody = @{ router = $ROUTER_NAME; sites = $sites } | ConvertTo-Json -Depth 3
-try {
-    $siteResp = Invoke-RestMethod -Uri "$SERVER/api/push_sites" -Method POST -Body $sitesBody -ContentType "application/json"
-    Write-Host "Sites sent. restart_neo=$($siteResp.restart_neo)"
-} catch {
-    Write-Host "Sites send failed: $_"
+# --- Speed test (Mode: speed | all) ---
+if ($Mode -eq "speed" -or $Mode -eq "all") {
+    Write-Host "Running speedtest (VPN)..."
+    $vpn = Run-ST
+    Write-Host "Running RU speed..."
+    $ru = Run-RU
+    Write-Host "VPN: down=$($vpn.down) up=$($vpn.up) ping=$($vpn.ping)"
+    Write-Host "RU:  down=$($ru.down) ping=$($ru.ping)"
+    $speedBody = @{
+        router   = $ROUTER_NAME
+        vpn_down = $vpn.down; vpn_up = $vpn.up
+        ru_down  = $ru.down;  ru_up  = 0
+        ping     = $vpn.ping; ru_ping = $ru.ping
+    } | ConvertTo-Json
+    try { Invoke-RestMethod -Uri "$SERVER/api/push_speed" -Method POST -Body $speedBody -ContentType "application/json" }
+    catch { Write-Host "Speed send failed: $_" }
 }
-
-# --- Send speed results ---
-$speedBody = @{
-    router   = $ROUTER_NAME
-    vpn_down = $vpn.down; vpn_up = $vpn.up
-    ru_down  = $ru.down;  ru_up  = 0
-    ping     = $vpn.ping; ru_ping = $ru.ping
-} | ConvertTo-Json
-
-try { Invoke-RestMethod -Uri "$SERVER/api/push_speed" -Method POST -Body $speedBody -ContentType "application/json" }
-catch { Write-Host "Speed send failed: $_" }
