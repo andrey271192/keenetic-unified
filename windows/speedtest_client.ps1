@@ -27,12 +27,34 @@ function Run-ST {
     } catch { return @{ down=0; up=0; ping=0 } }
 }
 
+function Run-RU {
+    # Ping to Russian server
+    $ru_ping = 0
+    try {
+        $p = Test-Connection -ComputerName "ya.ru" -Count 3 -ErrorAction Stop
+        $ru_ping = [math]::Round(($p | Measure-Object -Property ResponseTime -Average).Average, 0)
+    } catch { $ru_ping = 0 }
+
+    # Download speed via Russian CDN (Selectel 10MB test file)
+    $ru_down = 0
+    try {
+        $start = Get-Date
+        $resp = Invoke-WebRequest -Uri "https://speedtest.selectel.ru/10mb" -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+        $elapsed = ([math]::Max(((Get-Date) - $start).TotalSeconds, 0.1))
+        $ru_down = [math]::Round($resp.RawContentLength * 8 / 1e6 / $elapsed, 1)
+    } catch { $ru_down = 0 }
+
+    return @{ down = $ru_down; ping = $ru_ping }
+}
+
 $vpn = Run-ST
+$ru  = Run-RU
+
 $body = @{
     router   = $ROUTER_NAME
     vpn_down = $vpn.down; vpn_up = $vpn.up
-    ru_down  = 0; ru_up = 0
-    ping     = $vpn.ping; ru_ping = 0
+    ru_down  = $ru.down;  ru_up  = 0
+    ping     = $vpn.ping; ru_ping = $ru.ping
 } | ConvertTo-Json
 
 try { Invoke-RestMethod -Uri "$SERVER/api/push_speed" -Method POST -Body $body -ContentType "application/json" }
