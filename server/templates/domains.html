@@ -64,6 +64,14 @@ input.f-inp:focus,select.f-sel:focus{border-color:var(--accent)}
 /* Pending banner */
 .pending-banner{background:rgba(255,159,10,.12);border:1px solid rgba(255,159,10,.4);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;display:none}
 .pending-banner span{font-size:13px;color:var(--orange);font-weight:600}
+/* NAV */
+.hdr{padding:0 24px;height:54px;background:rgba(28,28,30,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;margin:-20px -24px 20px}
+.hdr-logo{font-size:17px;font-weight:800;white-space:nowrap}
+.hdr-logo em{font-style:normal;color:var(--accent)}
+.hdr-nav{display:flex;gap:4px}
+.ntab{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;color:var(--muted);transition:.15s;white-space:nowrap}
+.ntab:hover{color:var(--text);background:var(--card2)}.ntab.active{background:var(--accent);color:#fff}
+.logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
 /* Import */
 .imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:600px){.imp-grid{grid-template-columns:1fr};.groups-grid{grid-template-columns:1fr}}
@@ -76,7 +84,32 @@ textarea.imp-ta:focus{border-color:var(--accent)}
 .toggle.on{background:var(--green)}.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s}
 .toggle.on::after{left:16px}
 </style></head><body>
-<a href="/">← На главную</a>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#1c1c1e;border-radius:24px;padding:40px 36px;width:min(360px,90vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+    <div style="font-size:44px;margin-bottom:14px">🔐</div>
+    <h2 style="font-size:20px;font-weight:700;color:#f5f5f7;margin-bottom:6px">Keenetic Unified</h2>
+    <p style="font-size:13px;color:#86868b;margin-bottom:22px">Введите пароль для доступа</p>
+    <input id="auth-pwd" type="password" placeholder="Пароль" autocomplete="current-password"
+      style="width:100%;background:#2c2c2e;border:1px solid #38383a;border-radius:12px;padding:12px 16px;color:#f5f5f7;font-size:15px;outline:none;font-family:inherit;margin-bottom:8px;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter')_doLogin()">
+    <div id="auth-err" style="color:#ff453a;font-size:12px;font-weight:600;margin-bottom:8px;display:none">❌ Неверный пароль</div>
+    <button onclick="_doLogin()" id="auth-btn" style="width:100%;background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Войти</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="hdr">
+  <span class="hdr-logo">📡 <em>Keenetic</em> Unified</span>
+  <div class="hdr-nav">
+    <a class="ntab" href="/">📊 Дашборд</a>
+    <a class="ntab active" href="/domains">🌐 Домены</a>
+    <a class="ntab" href="/admin">⚙ Управление</a>
+  </div>
+  <button class="logout-btn" onclick="logout()">Выйти</button>
+</div>
+
 <div class="topbar">
   <div>
     <h1>🌐 Домены HydraRoute</h1>
@@ -180,6 +213,29 @@ textarea.imp-ta:focus{border-color:var(--accent)}
 </div>
 
 <script>
+// ── AUTH ──────────────────────────────────────────────────────────────────
+function getPass(){ return sessionStorage.getItem('ku_pass')||''; }
+function authHdr(){ return {'Content-Type':'application/json','X-Admin-Password':getPass()}; }
+function _showLogin(){ const o=document.getElementById('auth-overlay'); o.style.display='flex'; setTimeout(()=>document.getElementById('auth-pwd').focus(),100); }
+async function _checkAuth(){
+  const p=sessionStorage.getItem('ku_pass'); if(!p){ _showLogin(); return false; }
+  const r=await fetch('/api/auth',{headers:{'X-Admin-Password':p}});
+  if(!r.ok){ sessionStorage.removeItem('ku_pass'); _showLogin(); return false; }
+  return true;
+}
+async function _doLogin(){
+  const p=document.getElementById('auth-pwd').value; if(!p) return;
+  const err=document.getElementById('auth-err'),btn=document.getElementById('auth-btn');
+  err.style.display='none'; btn.textContent='Проверка...'; btn.disabled=true;
+  const r=await fetch('/api/auth',{headers:{'X-Admin-Password':p}});
+  if(r.ok){ sessionStorage.setItem('ku_pass',p); document.getElementById('auth-overlay').style.display='none'; _afterLogin(); }
+  else { err.style.display='block'; }
+  btn.textContent='Войти'; btn.disabled=false;
+}
+function logout(){ sessionStorage.removeItem('ku_pass'); _showLogin(); }
+function _afterLogin(){ loadConfig(); }
+
+// ── DOMAINS ───────────────────────────────────────────────────────────────
 let CFG = {domain_groups:[], ip_groups:[]};
 let pendingChanges = false;
 
@@ -294,7 +350,7 @@ async function saveGroup(type, idx){
   const updated = {...g, entries};
   const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
   try{
-    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
+    await fetch(url,{method:'POST',headers:authHdr(),body:JSON.stringify(updated)});
     sm('view-msg','ok',`✅ ${g.name} сохранён (${entries.length} записей)`);
     markPending();
     await loadConfig();
@@ -304,7 +360,7 @@ async function saveGroup(type, idx){
 async function deleteGroup(type, name){
   if(!confirm(`Удалить группу "${name}"?`)) return;
   const url = type==='domain' ? `/api/hydra/domain-group/${name}` : `/api/hydra/ip-group/${name}`;
-  await fetch(url,{method:'DELETE'});
+  await fetch(url,{method:'DELETE',headers:{'X-Admin-Password':getPass()}});
   sm('view-msg','ok',`🗑 ${name} удалён`);
   markPending();
   await loadConfig();
@@ -314,7 +370,7 @@ async function toggleGroup(type, idx){
   const g = type==='domain' ? CFG.domain_groups[idx] : CFG.ip_groups[idx];
   const updated = {...g, enabled: !g.enabled};
   const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
-  await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
+  await fetch(url,{method:'POST',headers:authHdr(),body:JSON.stringify(updated)});
   markPending();
   await loadConfig();
 }
@@ -337,7 +393,7 @@ async function saveNewGroup(type){
   const entries = raw.split(/[\n,]/).map(l=>l.trim()).filter(l=>l);
   const g = {name, entries, policy, entry_type, enabled:true};
   const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
-  await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(g)});
+  await fetch(url,{method:'POST',headers:authHdr(),body:JSON.stringify(g)});
   sm('view-msg','ok',`✅ Группа "${name}" создана`);
   document.getElementById(`${pfx}-name`).value='';
   document.getElementById(`${pfx}-entries`).value='';
@@ -353,7 +409,7 @@ async function pushAll(){
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Обновляю...';
   log.style.display='block'; log.textContent='Запуск...\n';
   try{
-    const j=await(await fetch('/api/hydra/push_all',{method:'POST'})).json();
+    const j=await(await fetch('/api/hydra/push_all',{method:'POST',headers:{'X-Admin-Password':getPass()}})).json();
     log.textContent='';
     for(const r of j.results) log.textContent+=`${r.status==='ok'?'✅':r.status==='skip'?'⏭':'❌'} ${r.router}: ${r.message}\n`;
     log.textContent+=`\nИтого: ${j.ok} успешно, ${j.failed} ошибок`;
@@ -369,7 +425,7 @@ async function importFiles(){
   if(!dc&&!il){sm('im','err','❌ Поля пусты');return;}
   const b={}; if(dc)b.domain_conf=dc; if(il)b.ip_list=il;
   try{
-    const j=await(await fetch('/api/hydra/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})).json();
+    const j=await(await fetch('/api/hydra/import',{method:'POST',headers:authHdr(),body:JSON.stringify(b)})).json();
     sm('im','ok',`✅ ${j.domain_groups} доменных групп, ${j.ip_groups} IP групп · v:${j.version}`);
     await loadConfig();
   }catch(e){sm('im','err','❌ '+e)}
@@ -383,5 +439,5 @@ async function loadExport(){
 
 function sm(id,c,t){const e=document.getElementById(id);e.className='msg '+c;e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',5000)}
 
-loadConfig();
+_checkAuth().then(ok=>{ if(ok) _afterLogin(); });
 </script></body></html>

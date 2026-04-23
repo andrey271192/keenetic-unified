@@ -1,10 +1,126 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Keenetic Unified</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}:root{--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--border:#38383a;--text:#f5f5f7;--muted:#86868b;--accent:#0a84ff;--green:#30d158;--red:#ff453a;--yellow:#ffd60a;--blue:#64d2ff;--orange:#ff9f0a;--green-bg:rgba(48,209,88,.1);--red-bg:rgba(255,69,58,.1);--yellow-bg:rgba(255,214,10,.1)}body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}.hdr{padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:rgba(28,28,30,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10}.hdr h1{font-size:20px;font-weight:700}.hdr h1 em{font-style:normal;color:var(--accent);font-weight:800}.hdr-r{display:flex;gap:8px;align-items:center}.hdr-r a{color:var(--muted);font-size:12px;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid var(--border);transition:all .2s}.hdr-r a:hover{color:var(--text);border-color:var(--accent)}.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{font-size:11px;padding:5px 14px;border-radius:100px;font-weight:600;background:var(--card);border:1px solid var(--border)}.pill b{margin-right:1px}.pill.on b{color:var(--green)}.pill.off b{color:var(--red)}.pill.pc b{color:var(--blue)}.container{padding:20px 28px;max-width:1600px;margin:0 auto}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}.card{background:var(--card);border-radius:16px;padding:18px;transition:transform .15s,box-shadow .15s;border:1px solid transparent}.card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4);border-color:rgba(255,255,255,.06)}.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.card-top h3{font-size:15px;font-weight:700}.badge{font-size:10px;padding:3px 12px;border-radius:100px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}.badge.on{background:var(--green-bg);color:var(--green)}.badge.off{background:var(--red-bg);color:var(--red)}.badge.unk{background:var(--yellow-bg);color:var(--yellow)}.sites{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}.sp{font-size:10px;padding:4px 10px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:4px}.sp.ok{background:rgba(48,209,88,.06);color:var(--green);border:1px solid rgba(48,209,88,.12)}.sp.fail{background:rgba(255,69,58,.06);color:var(--red);border:1px solid rgba(255,69,58,.12)}.speed-wrap{margin:10px 0 6px}.speed-bars{display:flex;gap:2px;height:6px;border-radius:4px;overflow:hidden;background:var(--card2);margin-bottom:8px}.speed-bars .seg{border-radius:4px;transition:width .4s ease-out}.seg.v{background:var(--green)}.seg.r{background:var(--blue)}.speed-nums{display:flex;gap:14px;align-items:baseline}.sn{display:flex;align-items:baseline;gap:3px}.sn .l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600}.sn .n{font-size:20px;font-weight:800;letter-spacing:-.5px}.sn .u{font-size:10px;color:var(--muted);font-weight:600}.sn.vpn .n{color:var(--green)}.sn.ru .n{color:var(--blue)}.sn.ping .n{color:var(--orange)}.chart{height:30px;display:flex;align-items:flex-end;gap:1px;margin:8px 0}.chart .bar{flex:1;border-radius:3px 3px 0 0;min-height:1px;opacity:.35;transition:opacity .15s;cursor:pointer}.chart .bar:hover{opacity:.9}.chart .bar.vb{background:var(--green)}.chart .bar.rb{background:var(--blue)}.wd{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-top:6px;font-weight:500}.dot{width:7px;height:7px;border-radius:50%}.dot.ok{background:var(--green)}.dot.fail{background:var(--red)}.dot.warn{background:var(--yellow)}.dot.unk{background:var(--muted)}.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);font-size:10px;color:var(--muted);font-weight:500}.card-foot a{color:var(--accent);text-decoration:none;font-weight:600}.card-foot a:hover{text-decoration:underline}.sec-title{font-size:15px;font-weight:700;margin:28px 0 10px}.events-wrap{background:var(--card);border-radius:16px;max-height:340px;overflow-y:auto}.ev{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;display:flex;gap:12px;font-weight:500}.ev:last-child{border:none}.ev .ts{color:var(--muted);min-width:110px;flex-shrink:0}#refresh{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;border:none;padding:10px 22px;border-radius:100px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(10,132,255,.3);font-family:inherit}#refresh:hover{transform:scale(1.05)}.upd{font-size:10px;color:var(--muted);text-align:right;margin-top:12px}@media(max-width:720px){.container{padding:12px}.grid{grid-template-columns:1fr}}</style></head><body>
-<div class="hdr"><h1>📡 <em>Keenetic</em> Unified</h1><div class="hdr-r"><div class="pills" id="pills"></div><a href="/admin">⚙ Управление</a></div></div>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--border:#38383a;--text:#f5f5f7;--muted:#86868b;--accent:#0a84ff;--green:#30d158;--red:#ff453a;--yellow:#ffd60a;--blue:#64d2ff;--orange:#ff9f0a;--green-bg:rgba(48,209,88,.1);--red-bg:rgba(255,69,58,.1);--yellow-bg:rgba(255,214,10,.1)}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+/* NAV */
+.hdr{padding:0 24px;height:54px;background:rgba(28,28,30,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hdr-logo{font-size:17px;font-weight:800;white-space:nowrap;color:var(--text)}
+.hdr-logo em{font-style:normal;color:var(--accent)}
+.hdr-nav{display:flex;gap:4px}
+.ntab{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;color:var(--muted);transition:.15s;white-space:nowrap}
+.ntab:hover{color:var(--text);background:var(--card2)}.ntab.active{background:var(--accent);color:#fff}
+.hdr-r{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.logout-btn:hover{color:var(--text);border-color:var(--text)}
+/* PILLS */
+.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{font-size:11px;padding:5px 14px;border-radius:100px;font-weight:600;background:var(--card);border:1px solid var(--border)}.pill b{margin-right:1px}.pill.on b{color:var(--green)}.pill.off b{color:var(--red)}.pill.pc b{color:var(--blue)}
+/* CARDS */
+.container{padding:20px 28px;max-width:1600px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.card{background:var(--card);border-radius:16px;padding:18px;transition:transform .15s,box-shadow .15s;border:1px solid transparent}.card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4);border-color:rgba(255,255,255,.06)}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.card-top h3{font-size:15px;font-weight:700}
+.badge{font-size:10px;padding:3px 12px;border-radius:100px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}.badge.on{background:var(--green-bg);color:var(--green)}.badge.off{background:var(--red-bg);color:var(--red)}.badge.unk{background:var(--yellow-bg);color:var(--yellow)}
+.sites{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}.sp{font-size:10px;padding:4px 10px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:4px}.sp.ok{background:rgba(48,209,88,.06);color:var(--green);border:1px solid rgba(48,209,88,.12)}.sp.fail{background:rgba(255,69,58,.06);color:var(--red);border:1px solid rgba(255,69,58,.12)}
+.speed-wrap{margin:10px 0 6px}.speed-bars{display:flex;gap:2px;height:6px;border-radius:4px;overflow:hidden;background:var(--card2);margin-bottom:8px}.speed-bars .seg{border-radius:4px;transition:width .4s ease-out}.seg.v{background:var(--green)}.seg.r{background:var(--blue)}
+.speed-nums{display:flex;gap:14px;align-items:baseline}.sn{display:flex;align-items:baseline;gap:3px}.sn .l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600}.sn .n{font-size:20px;font-weight:800;letter-spacing:-.5px}.sn .u{font-size:10px;color:var(--muted);font-weight:600}.sn.vpn .n{color:var(--green)}.sn.ru .n{color:var(--blue)}.sn.ping .n{color:var(--orange)}
+.chart{height:30px;display:flex;align-items:flex-end;gap:1px;margin:8px 0}.chart .bar{flex:1;border-radius:3px 3px 0 0;min-height:1px;opacity:.35;transition:opacity .15s;cursor:pointer}.chart .bar:hover{opacity:.9}.chart .bar.vb{background:var(--green)}.chart .bar.rb{background:var(--blue)}
+.wd{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-top:6px;font-weight:500}.dot{width:7px;height:7px;border-radius:50%}.dot.ok{background:var(--green)}.dot.fail{background:var(--red)}.dot.warn{background:var(--yellow)}.dot.unk{background:var(--muted)}
+.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);font-size:10px;color:var(--muted);font-weight:500}.card-foot a{color:var(--accent);text-decoration:none;font-weight:600}.card-foot a:hover{text-decoration:underline}
+.sec-title{font-size:15px;font-weight:700;margin:28px 0 10px}
+.events-wrap{background:var(--card);border-radius:16px;max-height:340px;overflow-y:auto}.ev{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;display:flex;gap:12px;font-weight:500}.ev:last-child{border:none}.ev .ts{color:var(--muted);min-width:110px;flex-shrink:0}
+#refresh{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;border:none;padding:10px 22px;border-radius:100px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(10,132,255,.3);font-family:inherit}#refresh:hover{transform:scale(1.05)}
+.upd{font-size:10px;color:var(--muted);text-align:right;margin-top:12px}
+@media(max-width:720px){.container{padding:12px}.grid{grid-template-columns:1fr}.hdr-nav{display:none}}
+</style></head><body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#1c1c1e;border-radius:24px;padding:40px 36px;width:min(360px,90vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+    <div style="font-size:44px;margin-bottom:14px">🔐</div>
+    <h2 style="font-size:20px;font-weight:700;color:#f5f5f7;margin-bottom:6px">Keenetic Unified</h2>
+    <p style="font-size:13px;color:#86868b;margin-bottom:22px">Введите пароль для доступа</p>
+    <input id="auth-pwd" type="password" placeholder="Пароль" autocomplete="current-password"
+      style="width:100%;background:#2c2c2e;border:1px solid #38383a;border-radius:12px;padding:12px 16px;color:#f5f5f7;font-size:15px;outline:none;font-family:inherit;margin-bottom:8px;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter')_doLogin()">
+    <div id="auth-err" style="color:#ff453a;font-size:12px;font-weight:600;margin-bottom:8px;display:none">❌ Неверный пароль</div>
+    <button onclick="_doLogin()" id="auth-btn" style="width:100%;background:#0a84ff;color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s">Войти</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="hdr">
+  <span class="hdr-logo">📡 <em>Keenetic</em> Unified</span>
+  <div class="hdr-nav">
+    <a class="ntab active" href="/">📊 Дашборд</a>
+    <a class="ntab" href="/domains">🌐 Домены</a>
+    <a class="ntab" href="/admin">⚙ Управление</a>
+  </div>
+  <div class="hdr-r">
+    <div class="pills" id="pills"></div>
+    <button class="logout-btn" onclick="logout()">Выйти</button>
+  </div>
+</div>
+
 <div class="container"><div class="grid" id="grid"></div><div class="sec-title" id="ev-t" style="display:none">Последние события</div><div id="ev"></div><div class="upd" id="upd"></div></div>
 <button id="refresh" onclick="load()">↻</button>
+
 <script>
-async function load(){try{const r=await fetch('/api/status');const d=await r.json();render(d);document.getElementById('upd').textContent='Обновлено: '+new Date().toLocaleTimeString('ru')}catch(e){document.getElementById('grid').innerHTML='<p style="color:var(--red);padding:20px">'+e+'</p>'}}
-function render(d){const R=d.routers||{},N=Object.keys(R),on=N.filter(n=>R[n].online===true).length,off=N.filter(n=>R[n].online===false).length,pc=Object.keys(d.sites||{}).length;document.getElementById('pills').innerHTML=`<span class="pill">Всего: <b>${N.length}</b></span><span class="pill on">Online: <b>${on}</b></span><span class="pill off">Offline: <b>${off}</b></span><span class="pill pc">PC: <b>${pc}</b></span>`;let h='';for(const[name,cfg]of Object.entries(R)){const ol=cfg.online,bc=ol===true?'on':ol===false?'off':'unk',bl=ol===true?'ONLINE':ol===false?'OFFLINE':'—';const dn=cfg.display_name||name,sites=d.sites?.[name]||{},wd=d.watchdog?.[name]||{},sp=d.speed?.[name]||[],last=sp.length?sp[sp.length-1]:{};let sh='';for(const[s,i]of Object.entries(sites)){sh+=`<span class="sp ${i.status?'ok':'fail'}">${i.status?'✓':'✗'} ${s}</span>`}let spH='';const vd=last.vpn_down||0,rd=last.ru_down||0,pg=last.ping||0,mx=Math.max(vd,rd,1);if(vd||rd){spH=`<div class="speed-wrap"><div class="speed-bars"><div class="seg v" style="width:${(vd/mx)*48}%"></div><div class="seg r" style="width:${(rd/mx)*48}%"></div></div><div class="speed-nums"><div class="sn vpn"><span class="l">↓VPN</span><span class="n">${vd.toFixed(0)}</span><span class="u">Mbps</span></div><div class="sn ru"><span class="l">↓RU</span><span class="n">${rd.toFixed(0)}</span><span class="u">Mbps</span></div><div class="sn ping"><span class="l">⏱</span><span class="n">${pg.toFixed(0)}</span><span class="u">ms</span></div></div></div>`}let ch='';if(sp.length>1){const mxV=Math.max(...sp.map(s=>s.vpn_down||0),1);ch='<div class="chart">';for(const s of sp){ch+=`<div class="bar vb" style="height:${Math.max(((s.vpn_down||0)/mxV)*100,2)}%"></div>`}ch+='</div>'}let wh='';if(wd.state){const dc=wd.state==='OK'?'ok':wd.state==='CRITICAL'||wd.state==='DEAD'?'fail':'warn';wh=`<div class="wd"><span class="dot ${dc}"></span>WD: ${wd.state} · Neo ${wd.neo_alive?'✓':'✗'}</div>`}const lc=cfg.last_check?new Date(cfg.last_check).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';h+=`<div class="card"><div class="card-top"><h3>${dn}</h3><span class="badge ${bc}">${bl}</span></div>${sh?`<div class="sites">${sh}</div>`:''}${spH}${ch}${wh}<div class="card-foot"><span>${lc} · ${cfg.ip||''}</span><span>${cfg.web_url?`<a href="${cfg.web_url}" target="_blank">↗</a> · `:''}${sp.length?`<a href="/stats/${name}">📊</a>`:''}</span></div></div>`}document.getElementById('grid').innerHTML=h;const ev=d.events||[];if(ev.length){document.getElementById('ev-t').style.display='';let eh='<div class="events-wrap">';for(const e of[...ev].reverse()){const t=new Date(e.ts).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});eh+=`<div class="ev"><span class="ts">${t}</span><span>${e.router}: ${e.detail}</span></div>`}document.getElementById('ev').innerHTML=eh+'</div>'}}
-load();setInterval(load,30000);
+// ── AUTH ──────────────────────────────────────────────────────────────────
+function getPass(){ return sessionStorage.getItem('ku_pass')||''; }
+function _showLogin(){ const o=document.getElementById('auth-overlay'); o.style.display='flex'; setTimeout(()=>document.getElementById('auth-pwd').focus(),100); }
+async function _checkAuth(){
+  const p=sessionStorage.getItem('ku_pass'); if(!p){ _showLogin(); return false; }
+  const r=await fetch('/api/auth',{headers:{'X-Admin-Password':p}});
+  if(!r.ok){ sessionStorage.removeItem('ku_pass'); _showLogin(); return false; }
+  return true;
+}
+async function _doLogin(){
+  const p=document.getElementById('auth-pwd').value; if(!p) return;
+  const err=document.getElementById('auth-err'),btn=document.getElementById('auth-btn');
+  err.style.display='none'; btn.textContent='Проверка...'; btn.disabled=true;
+  const r=await fetch('/api/auth',{headers:{'X-Admin-Password':p}});
+  if(r.ok){ sessionStorage.setItem('ku_pass',p); document.getElementById('auth-overlay').style.display='none'; _afterLogin(); }
+  else { err.style.display='block'; }
+  btn.textContent='Войти'; btn.disabled=false;
+}
+function logout(){ sessionStorage.removeItem('ku_pass'); _showLogin(); }
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────
+let _timer;
+function _afterLogin(){ load(); if(_timer) clearInterval(_timer); _timer=setInterval(load,30000); }
+
+async function load(){
+  try{
+    const r=await fetch('/api/status'); const d=await r.json(); render(d);
+    document.getElementById('upd').textContent='Обновлено: '+new Date().toLocaleTimeString('ru');
+  }catch(e){ document.getElementById('grid').innerHTML='<p style="color:var(--red);padding:20px">'+e+'</p>'; }
+}
+
+function render(d){
+  const R=d.routers||{},N=Object.keys(R),on=N.filter(n=>R[n].online===true).length,off=N.filter(n=>R[n].online===false).length,pc=Object.keys(d.sites||{}).length;
+  document.getElementById('pills').innerHTML=`<span class="pill">Всего: <b>${N.length}</b></span><span class="pill on">Online: <b>${on}</b></span><span class="pill off">Offline: <b>${off}</b></span><span class="pill pc">PC: <b>${pc}</b></span>`;
+  let h='';
+  for(const[name,cfg]of Object.entries(R)){
+    const ol=cfg.online,bc=ol===true?'on':ol===false?'off':'unk',bl=ol===true?'ONLINE':ol===false?'OFFLINE':'—';
+    const dn=cfg.display_name||name,sites=d.sites?.[name]||{},wd=d.watchdog?.[name]||{},sp=d.speed?.[name]||[],last=sp.length?sp[sp.length-1]:{};
+    let sh='';for(const[s,i]of Object.entries(sites)){sh+=`<span class="sp ${i.status?'ok':'fail'}">${i.status?'✓':'✗'} ${s}</span>`}
+    let spH='';const vd=last.vpn_down||0,rd=last.ru_down||0,pg=last.ping||0,mx=Math.max(vd,rd,1);
+    if(vd||rd){spH=`<div class="speed-wrap"><div class="speed-bars"><div class="seg v" style="width:${(vd/mx)*48}%"></div><div class="seg r" style="width:${(rd/mx)*48}%"></div></div><div class="speed-nums"><div class="sn vpn"><span class="l">↓VPN</span><span class="n">${vd.toFixed(0)}</span><span class="u">Mbps</span></div><div class="sn ru"><span class="l">↓RU</span><span class="n">${rd.toFixed(0)}</span><span class="u">Mbps</span></div><div class="sn ping"><span class="l">⏱</span><span class="n">${pg.toFixed(0)}</span><span class="u">ms</span></div></div></div>`}
+    let ch='';if(sp.length>1){const mxV=Math.max(...sp.map(s=>s.vpn_down||0),1);ch='<div class="chart">';for(const s of sp){ch+=`<div class="bar vb" style="height:${Math.max(((s.vpn_down||0)/mxV)*100,2)}%"></div>`}ch+='</div>'}
+    let wh='';if(wd.state){const dc=wd.state==='OK'?'ok':wd.state==='CRITICAL'||wd.state==='DEAD'?'fail':'warn';wh=`<div class="wd"><span class="dot ${dc}"></span>WD: ${wd.state} · Neo ${wd.neo_alive?'✓':'✗'}</div>`}
+    const lc=cfg.last_check?new Date(cfg.last_check).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    h+=`<div class="card"><div class="card-top"><h3>${dn}</h3><span class="badge ${bc}">${bl}</span></div>${sh?`<div class="sites">${sh}</div>`:''}${spH}${ch}${wh}<div class="card-foot"><span>${lc} · ${cfg.ip||''}</span><span>${cfg.web_url?`<a href="${cfg.web_url}" target="_blank">↗</a> · `:''}${sp.length?`<a href="/stats/${name}">📊</a>`:''}</span></div></div>`;
+  }
+  document.getElementById('grid').innerHTML=h;
+  const ev=d.events||[];
+  if(ev.length){
+    document.getElementById('ev-t').style.display='';
+    let eh='<div class="events-wrap">';
+    for(const e of[...ev].reverse()){const t=new Date(e.ts).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});eh+=`<div class="ev"><span class="ts">${t}</span><span>${e.router}: ${e.detail}</span></div>`}
+    document.getElementById('ev').innerHTML=eh+'</div>';
+  }
+}
+
+_checkAuth().then(ok=>{ if(ok) _afterLogin(); });
 </script></body></html>

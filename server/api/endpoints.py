@@ -1,6 +1,6 @@
 """API: watchdog (auto-register), sites, speed, status, hydra."""
 from datetime import datetime
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Header, HTTPException
 from fastapi.responses import Response
 from ..models import (SitesReport, SitesRecheck, SpeedReport, WatchdogReport, DomainGroup, IpGroup)
 from ..database import save_json
@@ -8,6 +8,13 @@ from .. import config
 from ..services.notifier import notify, events
 from ..services.hydra_manager import (load_hydra_config, save_hydra_config, generate_domain_conf, generate_ip_list, get_config_version, parse_domain_conf, parse_ip_list)
 router = APIRouter(prefix="/api", tags=["data"])
+def _chk(pwd: str):
+    if config.ADMIN_PASSWORD and pwd != config.ADMIN_PASSWORD:
+        raise HTTPException(401, "Неверный пароль")
+
+@router.get("/auth")
+async def auth_check(x_admin_password: str = Header("")):
+    _chk(x_admin_password); return {"ok": True}
 def _s():
     from ..main import routers, sites_status, watchdog_status, speed_history, restart_queue
     return routers, sites_status, watchdog_status, speed_history, restart_queue
@@ -92,25 +99,28 @@ async def hv(): return Response(content=get_config_version(load_hydra_config()),
 @router.get("/hydra/config")
 async def hc(): return load_hydra_config().model_dump()
 @router.post("/hydra/domain-group")
-async def hadg(g: DomainGroup):
-    c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=g.name]; c.domain_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
+async def hadg(g: DomainGroup, x_admin_password: str = Header("")):
+    _chk(x_admin_password); c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=g.name]; c.domain_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
 @router.post("/hydra/ip-group")
-async def haig(g: IpGroup):
-    c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=g.name]; c.ip_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
+async def haig(g: IpGroup, x_admin_password: str = Header("")):
+    _chk(x_admin_password); c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=g.name]; c.ip_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
 @router.delete("/hydra/domain-group/{name}")
-async def hddg(name:str): c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=name]; c.version=get_config_version(c); save_hydra_config(c); return {"ok":True}
+async def hddg(name:str, x_admin_password: str = Header("")):
+    _chk(x_admin_password); c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=name]; c.version=get_config_version(c); save_hydra_config(c); return {"ok":True}
 @router.delete("/hydra/ip-group/{name}")
-async def hdig(name:str): c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=name]; c.version=get_config_version(c); save_hydra_config(c); return {"ok":True}
+async def hdig(name:str, x_admin_password: str = Header("")):
+    _chk(x_admin_password); c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=name]; c.version=get_config_version(c); save_hydra_config(c); return {"ok":True}
 @router.post("/hydra/import")
-async def him(request: Request):
-    b=await request.json(); c=load_hydra_config()
+async def him(request: Request, x_admin_password: str = Header("")):
+    _chk(x_admin_password); b=await request.json(); c=load_hydra_config()
     if b.get("domain_conf"): c.domain_groups=parse_domain_conf(b["domain_conf"])
     if b.get("ip_list"): c.ip_groups=parse_ip_list(b["ip_list"])
     c.version=get_config_version(c); save_hydra_config(c)
     return {"ok":True,"domain_groups":len(c.domain_groups),"ip_groups":len(c.ip_groups),"version":c.version}
 
 @router.post("/hydra/push_all")
-async def push_all_routers():
+async def push_all_routers(x_admin_password: str = Header("")):
+    _chk(x_admin_password)
     from ..services.ssh_client import ssh_exec
     R, _, _, _, _ = _s()
     # Router fetches files from server via HTTP — avoids SSH command length limits
