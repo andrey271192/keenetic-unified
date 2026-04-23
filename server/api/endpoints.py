@@ -14,7 +14,7 @@ def _s():
 
 @router.post("/watchdog")
 async def watchdog_heartbeat(report: WatchdogReport):
-    R, _, W, _, _ = _s(); n = report.router; now = datetime.now().isoformat()
+    R, _, W, _, _ = _s(); n = report.router.strip().lower(); now = datetime.now().isoformat()
     if n not in R:
         R[n] = {"ip":"","user":"admin","password":"","display_name": report.display_name or n,"web_url":"","online":True,"last_check":now,"wan_ip":report.ip or ""}
     R[n]["online"] = True; R[n]["last_check"] = now
@@ -32,7 +32,7 @@ async def watchdog_heartbeat(report: WatchdogReport):
 
 @router.post("/push_sites")
 async def push_sites(report: SitesReport):
-    R, S, _, _, Q = _s(); n = report.router; now = datetime.now().isoformat(); nr = False
+    R, S, _, _, Q = _s(); n = report.router.strip().lower(); now = datetime.now().isoformat(); nr = False
     if n not in R: R[n] = {"ip":"","user":"admin","password":"","display_name":n,"web_url":"","online":True,"last_check":now}; save_json(config.ROUTERS_FILE, R)
     # Normalize site names: "youtube" -> "YouTube", "netflix" -> "Netflix"
     normalized = {}
@@ -53,7 +53,7 @@ async def push_sites(report: SitesReport):
 
 @router.post("/push_sites_recheck")
 async def push_sites_recheck(report: SitesRecheck):
-    R, S, _, _, _ = _s(); n = report.router; now = datetime.now().isoformat()
+    R, S, _, _, _ = _s(); n = report.router.strip().lower(); now = datetime.now().isoformat()
     for site, ok in report.sites.items():
         if n not in S: S[n] = {}
         S[n][site] = {"status": ok, "last_check": now}
@@ -64,7 +64,7 @@ async def push_sites_recheck(report: SitesRecheck):
 
 @router.post("/push_speed")
 async def push_speed(report: SpeedReport):
-    R, _, _, H, _ = _s(); n = report.router
+    R, _, _, H, _ = _s(); n = report.router.strip().lower()
     if n not in H: H[n] = []
     H[n].append({"ts":datetime.now().isoformat(),"vpn_down":report.vpn_down,"vpn_up":report.vpn_up,"ru_down":report.ru_down,"ru_up":report.ru_up,"ping":report.ping,"ru_ping":report.ru_ping})
     save_json(config.SPEED_FILE, H)

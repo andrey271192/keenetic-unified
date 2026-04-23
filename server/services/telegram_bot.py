@@ -188,7 +188,9 @@ async def _handle(text):
 
     elif cmd == "/speed":
         if not arg1: return "❓ /speed имя"
-        SP = load_json(config.SPEED_FILE, {}).get(arg1, [])
+        H = load_json(config.SPEED_FILE, {})
+        rn = _find_router(H, arg1) or arg1.strip().lower()
+        SP = H.get(rn, [])
         if not SP: return f"📊 Нет данных для '{arg1}'"
         l = SP[-1]
         return (f"📊 <b>{arg1}</b> — последний замер\n\n"
@@ -208,9 +210,11 @@ async def _handle(text):
                 dc = "🟢" if w.get("state")=="OK" else "🔴" if w.get("state") in ("CRITICAL","DEAD") else "🟡"
                 lines.append(f"{dc} <b>{n}</b>: {w.get('state','—')} | Neo {'✅' if w.get('neo_alive') else '❌'} | Last: {str(w.get('last_seen','—'))[:16]}")
             return "\n".join(lines)
-        W = load_json(config.WATCHDOG_FILE, {}).get(arg1, {})
+        WD = load_json(config.WATCHDOG_FILE, {})
+        wn = _find_router(WD, arg1) or arg1.strip().lower()
+        W = WD.get(wn, {})
         if not W: return f"❌ Нет данных для '{arg1}'"
-        return (f"🐕 <b>{arg1}</b>\n"
+        return (f"🐕 <b>{wn}</b>\n"
             f"State: {W.get('state','—')}\nPhase: {W.get('phase',0)}\n"
             f"Neo: {'✅' if W.get('neo_alive') else '❌'}\nVPN routes: {W.get('vpn_routes',0)}\n"
             f"Detail: {W.get('detail','—')}\nLast: {str(W.get('last_seen','—'))[:16]}")

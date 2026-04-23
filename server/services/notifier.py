@@ -8,7 +8,11 @@ from ..database import save_json, load_json
 
 logger = logging.getLogger("keenetic")
 events: list = load_json(config.EVENTS_FILE, [])
-_last = {}
+# key -> last notification datetime; avoids duplicate bursts within cooldown window
+_last: dict = {}
+# events that should always fire on state-change (no cooldown needed — already gated upstream)
+_NO_COOLDOWN = {"ROUTER_ONLINE", "ROUTER_OFFLINE", "NEO_RECOVERY", "NEO_CRITICAL"}
+_COOLDOWN_SEC = 300  # 5 min cooldown for repeated identical alerts
 EMOJI = {"SITE_DOWN":"❌","SITE_UP":"✅","NEO_RESTART":"🔄","NEO_RECOVERY":"✅",
     "NEO_CRITICAL":"🚨","WATCHDOG_DEAD":"💀","WATCHDOG_STALE":"⚠️",
     "ROUTER_OFFLINE":"📡❌","ROUTER_ONLINE":"📡✅","SPEED_LOW":"🐌","DOMAIN_UPDATE":"📋"}
@@ -31,8 +35,12 @@ def _email(subj, body):
 
 async def notify(router, event, detail, routers=None):
     key = f"{router}:{event}"
-    if _last.get(key) == detail: return
-    _last[key] = detail
+    now = datetime.now()
+    if event not in _NO_COOLDOWN:
+        last_ts = _last.get(key)
+        if last_ts and (now - last_ts).total_seconds() < _COOLDOWN_SEC:
+            return
+    _last[key] = now
     ts = datetime.now().isoformat()
     events.append({"ts": ts, "router": router, "event": event, "detail": detail})
     if len(events) > 500: events[:] = events[-500:]
