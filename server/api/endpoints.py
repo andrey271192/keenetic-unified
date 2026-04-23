@@ -48,7 +48,7 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
         password = rcfg.get("password") or config.SSH_PASS
         # Build one-liner: check each site via TCP and report exit codes
         checks = "; ".join(
-            f'curl -sf --connect-only --connect-timeout 5 --max-time 8 https://{s} 2>/dev/null && echo "{s}=OK" || echo "{s}=FAIL"'
+            f'_c=$(curl -s -o /dev/null -w "%{{http_code}}" --connect-timeout 5 --max-time 10 -L https://{s} 2>/dev/null); [ "$_c" != "000" ] && [ -n "$_c" ] && echo "{s}=OK($_c)" || echo "{s}=FAIL"'
             for s in sites
         )
         r = await ssh_exec_verbose(ip, checks, user=user, password=password, timeout=60)
@@ -57,7 +57,8 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
             line = line.strip()
             for s in sites:
                 if line.startswith(s+"="):
-                    site_results[s] = line.split("=",1)[1] == "OK"
+                    val = line.split("=",1)[1]
+                    site_results[s] = val.startswith("OK")
         router_results.append({"router": name, "ok": r["ok"], "sites": site_results, "error": "" if r["ok"] else r["output"][:100]})
     # Send summary to Telegram
     lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
