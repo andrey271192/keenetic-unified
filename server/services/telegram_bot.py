@@ -215,7 +215,7 @@ async def _handle(text):
         ip, dn, _, u, p = _get_router_ip(arg1)
         if not ip: return f"❌ '{arg1}' — нет IP. Добавь IP через /admin или watchdog\n\n" + _router_list()
         ssh_cmd = arg2 or "show version"
-        result = await ssh_exec(ip, ssh_cmd, user=u, password=p)
+        result = await ssh_exec(ip, ssh_cmd, user=u, password=p, timeout=120)
         return f"🔧 <b>{dn}</b> ({ip})\n$ {ssh_cmd}\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/neo":
