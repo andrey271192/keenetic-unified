@@ -296,4 +296,6 @@ def _router_list():
 
 def _escape(text):
     if not text: return "(пусто)"
+    import re
+    text = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', text)  # strip ANSI escape codes
     return text.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")[:3500]
