@@ -56,6 +56,14 @@ textarea:focus{border-color:var(--accent)}
 
 <div class="wrap">
   <h1>⚙ Управление роутерами</h1>
+
+  <div class="section">
+    <h2>🔔 Проверка уведомлений</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Отправит тестовое сообщение в Telegram и на email — убедись что оба канала работают</p>
+    <button class="btn btn-b" onclick="testNotify()" id="test-btn">📨 Отправить тест</button>
+    <div id="test-msg" class="msg"></div>
+  </div>
+
   <div class="section"><h2>➕ Добавить роутер</h2>
     <div class="row">
       <input id="a-n" placeholder="Имя" style="width:120px">
@@ -161,6 +169,18 @@ async function saveMap(){
     await fetch(`/api/routers/${n}`,{method:'POST',headers:hdr(),body:JSON.stringify(all[n])});ok++;
   }
   sm('mm','ok',`✅ Сохранено: ${ok}`);loadR();
+}
+
+async function testNotify(){
+  const btn=document.getElementById('test-btn');
+  btn.disabled=true; btn.textContent='⏳ Отправляю...';
+  try{
+    const j=await(await fetch('/api/test_notify',{method:'POST',headers:{'X-Admin-Password':getPass()}})).json();
+    const tg=j.telegram?'✅ Telegram':'❌ Telegram';
+    const em=j.email?`✅ Email → ${j.email_to}`:`❌ Email: ${j.email_error||'ошибка'}`;
+    sm('test-msg', j.telegram&&j.email?'ok':'err', `${tg}\n${em}`);
+  }catch(e){sm('test-msg','err','❌ '+e);}
+  btn.disabled=false; btn.textContent='📨 Отправить тест';
 }
 
 function quickSSH(cmd){ document.getElementById('ssh-cmd').value=cmd; sshAll(); }

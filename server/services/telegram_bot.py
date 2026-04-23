@@ -84,8 +84,29 @@ async def _handle(text):
             "/setname &lt;имя&gt; &lt;Название&gt; — задать имя\n"
             "/setweb &lt;имя&gt; &lt;URL&gt; — задать web ссылку\n"
             "/delete &lt;имя&gt; — удалить роутер\n\n"
+            "🔔 <b>Уведомления:</b>\n"
+            "/test — проверить Telegram + Email\n\n"
             "📋 <b>Роутеры:</b>\n"
             + _router_list())
+
+    elif cmd == "/test":
+        from .notifier import send_telegram, _email
+        import asyncio
+        # Test Telegram
+        await send_telegram("🔔 <b>Тест уведомлений</b>\n✅ Telegram работает!\n\nПроверяю email...")
+        # Test Email
+        ok_email = False
+        try:
+            await asyncio.to_thread(_email,
+                "Keenetic Unified — тест уведомлений",
+                "<h2>✅ Email уведомления работают!</h2><p>Это тестовое письмо от Keenetic Unified.</p>"
+            )
+            ok_email = True
+        except Exception as e:
+            ok_email = False
+            logger.error(f"Test email: {e}")
+        email_status = f"✅ Email отправлен на {config.SMTP_TO}" if ok_email else f"❌ Email ошибка — проверь SMTP настройки в .env"
+        return f"🔔 <b>Результат проверки</b>\n\n✅ Telegram — работает\n{email_status}"
 
     elif cmd == "/status":
         R = load_json(config.ROUTERS_FILE, {}); W = load_json(config.WATCHDOG_FILE, {})

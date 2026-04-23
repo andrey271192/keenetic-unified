@@ -15,6 +15,22 @@ def _chk(pwd: str):
 @router.get("/auth")
 async def auth_check(x_admin_password: str = Header("")):
     _chk(x_admin_password); return {"ok": True}
+
+@router.post("/test_notify")
+async def test_notify(x_admin_password: str = Header("")):
+    _chk(x_admin_password)
+    import asyncio
+    from ..services.notifier import send_telegram, _email
+    await send_telegram("🔔 <b>Тест уведомлений</b>\n✅ Telegram работает!\nПроверяю email...")
+    email_ok = True; email_err = ""
+    try:
+        await asyncio.to_thread(_email,
+            "Keenetic Unified — тест уведомлений",
+            "<h2>✅ Email уведомления работают!</h2><p>Тестовое письмо от Keenetic Unified.</p>"
+        )
+    except Exception as e:
+        email_ok = False; email_err = str(e)
+    return {"telegram": True, "email": email_ok, "email_error": email_err, "email_to": config.SMTP_TO}
 def _s():
     from ..main import routers, sites_status, watchdog_status, speed_history, restart_queue
     return routers, sites_status, watchdog_status, speed_history, restart_queue
