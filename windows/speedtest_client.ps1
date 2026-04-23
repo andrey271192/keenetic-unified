@@ -1,11 +1,13 @@
 $SERVER      = "http://SERVER_IP:8000"
 $ROUTER_NAME = "ROUTER"
 
-# Find speedtest binary: PATH → script dir → common install paths
+# Find speedtest binary: PATH → script dir → speedtest-monitor → common paths
 $ST_BIN = Get-Command speedtest -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
 if (-not $ST_BIN) {
     $candidates = @(
         "$PSScriptRoot\speedtest.exe",
+        "$env:USERPROFILE\speedtest-monitor\speedtest.exe",
+        "$env:LOCALAPPDATA\keenetic-unified\speedtest.exe",
         "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Ookla.Speedtest*\speedtest.exe",
         "C:\Program Files\Ookla\Speedtest CLI\speedtest.exe"
     )
@@ -16,7 +18,10 @@ if (-not $ST_BIN) {
 }
 
 function Run-ST {
-    if (-not $ST_BIN) { Write-Host "speedtest not found. Run: winget install Ookla.Speedtest"; return @{ down=0; up=0; ping=0 } }
+    if (-not $ST_BIN) {
+        Write-Host "speedtest not found. Run: winget install Ookla.Speedtest"
+        return @{ down=0; up=0; ping=0 }
+    }
     try {
         $o = & "$ST_BIN" --format=json --accept-license --accept-gdpr 2>$null | ConvertFrom-Json
         return @{
@@ -28,27 +33,41 @@ function Run-ST {
 }
 
 function Run-RU {
-    # Ping to Russian server
+    # RU ping (ya.ru)
     $ru_ping = 0
     try {
         $p = Test-Connection -ComputerName "ya.ru" -Count 3 -ErrorAction Stop
         $ru_ping = [math]::Round(($p | Measure-Object -Property ResponseTime -Average).Average, 0)
     } catch { $ru_ping = 0 }
 
-    # Download speed via Russian CDN (Selectel 10MB test file)
+    # RU download — download 10MB from Selectel, measure bytes actually received
     $ru_down = 0
-    try {
-        $start = Get-Date
-        $resp = Invoke-WebRequest -Uri "https://speedtest.selectel.ru/10mb" -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
-        $elapsed = ([math]::Max(((Get-Date) - $start).TotalSeconds, 0.1))
-        $ru_down = [math]::Round($resp.RawContentLength * 8 / 1e6 / $elapsed, 1)
-    } catch { $ru_down = 0 }
+    $urls = @(
+        "https://speedtest.selectel.ru/10mb",
+        "http://speedtest.selectel.ru/10mb",
+        "http://ipv4.download.thinkbroadband.com/10MB.zip"
+    )
+    foreach ($url in $urls) {
+        try {
+            $start = Get-Date
+            $resp = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+            $elapsed = [math]::Max(((Get-Date) - $start).TotalSeconds, 0.1)
+            $bytes = if ($resp.Content -is [byte[]]) { $resp.Content.Length } else { [System.Text.Encoding]::UTF8.GetByteCount($resp.Content) }
+            if ($bytes -gt 0) {
+                $ru_down = [math]::Round($bytes * 8 / 1e6 / $elapsed, 1)
+                break
+            }
+        } catch { continue }
+    }
 
     return @{ down = $ru_down; ping = $ru_ping }
 }
 
 $vpn = Run-ST
 $ru  = Run-RU
+
+Write-Host "VPN: down=$($vpn.down) up=$($vpn.up) ping=$($vpn.ping)"
+Write-Host "RU:  down=$($ru.down) ping=$($ru.ping)"
 
 $body = @{
     router   = $ROUTER_NAME
