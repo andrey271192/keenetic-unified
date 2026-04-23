@@ -8,7 +8,7 @@ log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [$1] $2" >> /opt/var/log/watchdog.log
 # HydraRoute uses policy routing — we check the routing decision, not curl
 check_vpn_route() {
   HOST="$1"
-  IP=$(nslookup "$HOST" 2>/dev/null | awk '/^Address [0-9]/{print $NF; exit} /Address:/{print $2}' | grep -Ev '^[0-9]+$' | head -1)
+  IP=$(nslookup "$HOST" 2>/dev/null | awk '/Address/{print $NF}' | grep -E '^[0-9]{1,3}\.' | head -1)
   [ -z "$IP" ] && return 1
   IFACE=$(ip route get "$IP" 2>/dev/null | grep -oE 'dev [^ ]+' | awk '{print $2}')
   echo "$IFACE" | grep -qE "^(nwg|tun|wg)" && return 0 || return 1
@@ -26,7 +26,7 @@ probe_sites() {
   RESULT=""
   for HOST in "www.canva.com" "www.instagram.com"; do
     LABEL=$(echo "$HOST" | sed 's/www\.//')
-    IP=$(nslookup "$HOST" 2>/dev/null | awk '/^Address [0-9]/{print $NF; exit} /Address:/{print $2}' | grep -Ev '^[0-9]+$' | head -1)
+    IP=$(nslookup "$HOST" 2>/dev/null | awk '/Address/{print $NF}' | grep -E '^[0-9]{1,3}\.' | head -1)
     IFACE=$(ip route get "$IP" 2>/dev/null | grep -oE 'dev [^ ]+' | awk '{print $2}')
     echo "$IFACE" | grep -qE "^(nwg|tun|wg)" \
       && RESULT="$RESULT ${LABEL}=VPN($IFACE)" \

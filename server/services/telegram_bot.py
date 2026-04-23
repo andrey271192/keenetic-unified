@@ -99,7 +99,7 @@ async def _handle(text):
             from ..main import routers as _all_r
             SITES = ["www.canva.com", "www.instagram.com", "www.netflix.com", "www.youtube.com"]
             checks = "; ".join(
-                f'_ip=$(nslookup {s} 2>/dev/null | awk \'/Address:/{{print $2}}\' | grep -v "#" | tail -1); '
+                f'_ip=$(nslookup {s} 2>/dev/null | awk \'/Address/{{print $NF}}\' | grep -E "^[0-9]{{1,3}}\\." | head -1); '
                 f'_if=$(ip route get "$_ip" 2>/dev/null | grep -oE "dev [^ ]+" | awk \'{{print $2}}\'); '
                 f'echo "$_if" | grep -qE "^(nwg|tun|wg)" && echo "{s}=VPN($_if)" || echo "{s}=DIRECT($_if)"'
                 for s in SITES

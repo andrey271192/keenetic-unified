@@ -48,7 +48,7 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
         password = rcfg.get("password") or config.SSH_PASS
         # Check routing decision for each site: if route goes via nwg*/tun*/wg* = VPN OK
         site_checks = "; ".join(
-            f'_ip=$(nslookup {s} 2>/dev/null | awk \'/Address:/{{print $2}}\' | grep -v "#" | tail -1); '
+            f'_ip=$(nslookup {s} 2>/dev/null | awk \'/Address/{{print $NF}}\' | grep -E "^[0-9]{{1,3}}\\." | head -1); '
             f'_if=$(ip route get "$_ip" 2>/dev/null | grep -oE "dev [^ ]+" | awk \'{{print $2}}\'); '
             f'echo "$_if" | grep -qE "^(nwg|tun|wg)" && echo "{s}=VPN($_if)" || echo "{s}=DIRECT($_if)"'
             for s in sites
