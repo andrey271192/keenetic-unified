@@ -1,0 +1,11 @@
+[Unit]
+Description=Keenetic Unified Monitor
+After=network.target
+[Service]
+Type=simple
+WorkingDirectory=/opt/keenetic-unified
+ExecStart=/opt/keenetic-unified/venv/bin/uvicorn server.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

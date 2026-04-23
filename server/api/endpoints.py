@@ -1,0 +1,110 @@
+"""API: watchdog (auto-register), sites, speed, status, hydra."""
+from datetime import datetime
+from fastapi import APIRouter, Request
+from fastapi.responses import Response
+from ..models import (SitesReport, SitesRecheck, SpeedReport, WatchdogReport, DomainGroup, IpGroup)
+from ..database import save_json
+from .. import config
+from ..services.notifier import notify, events
+from ..services.hydra_manager import (load_hydra_config, save_hydra_config, generate_domain_conf, generate_ip_list, get_config_version, parse_domain_conf, parse_ip_list)
+router = APIRouter(prefix="/api", tags=["data"])
+def _s():
+    from ..main import routers, sites_status, watchdog_status, speed_history, restart_queue
+    return routers, sites_status, watchdog_status, speed_history, restart_queue
+
+@router.post("/watchdog")
+async def watchdog_heartbeat(report: WatchdogReport):
+    R, _, W, _, _ = _s(); n = report.router; now = datetime.now().isoformat()
+    if n not in R:
+        R[n] = {"ip":"","user":"admin","password":"","display_name": report.display_name or n,"web_url":"","online":True,"last_check":now,"wan_ip":report.ip or ""}
+    R[n]["online"] = True; R[n]["last_check"] = now
+    # WAN IP from heartbeat — save separately, don't overwrite admin-set local IP
+    if report.ip: R[n]["wan_ip"] = report.ip
+    if report.display_name and not R[n].get("display_name"): R[n]["display_name"] = report.display_name
+    save_json(config.ROUTERS_FILE, R)
+    prev = W.get(n, {}).get("state")
+    W[n] = {"state":report.state,"last_seen":now,"phase":report.phase,"neo_alive":report.neo_alive,"vpn_routes":report.vpn_routes,"detail":report.detail}
+    save_json(config.WATCHDOG_FILE, dict(W))
+    if prev and prev != report.state:
+        em = {"ALERT":"SITE_DOWN","RESTART":"NEO_RESTART","RECOVERY":"NEO_RECOVERY","CRITICAL":"NEO_CRITICAL","DEAD":"WATCHDOG_DEAD","DOMAIN_UPDATE":"DOMAIN_UPDATE"}
+        await notify(n, em.get(report.state, report.state), report.detail or report.state, R)
+    return {"ok": True}
+
+@router.post("/push_sites")
+async def push_sites(report: SitesReport):
+    R, S, _, _, Q = _s(); n = report.router; now = datetime.now().isoformat(); nr = False
+    if n not in R: R[n] = {"ip":"","user":"admin","password":"","display_name":n,"web_url":"","online":True,"last_check":now}; save_json(config.ROUTERS_FILE, R)
+    # Normalize site names: "youtube" -> "YouTube", "netflix" -> "Netflix"
+    normalized = {}
+    for site, ok in report.sites.items():
+        key = site.capitalize()
+        normalized[key] = ok
+    for site, ok in normalized.items():
+        prev = S.get(n, {}).get(site, {}).get("status")
+        if n not in S: S[n] = {}
+        S[n][site] = {"status": ok, "last_check": now}
+        if prev is not None and prev != ok:
+            if ok: await notify(n,"SITE_UP",f"✅ {site}",R)
+            else: await notify(n,"SITE_DOWN",f"❌ {site}",R); nr = True
+        if not ok and prev is None: nr = True
+    save_json(config.SITES_FILE, dict(S))
+    if nr: Q[n] = True
+    return {"restart_neo": Q.pop(n, False)}
+
+@router.post("/push_sites_recheck")
+async def push_sites_recheck(report: SitesRecheck):
+    R, S, _, _, _ = _s(); n = report.router; now = datetime.now().isoformat()
+    for site, ok in report.sites.items():
+        if n not in S: S[n] = {}
+        S[n][site] = {"status": ok, "last_check": now}
+    save_json(config.SITES_FILE, dict(S))
+    if all(report.sites.values()) and report.after_restart: await notify(n,"NEO_RECOVERY","Сайты восстановлены",R)
+    elif not all(report.sites.values()) and report.after_restart: await notify(n,"NEO_CRITICAL","Сайты НЕ восстановлены!",R)
+    return {"ok": True}
+
+@router.post("/push_speed")
+async def push_speed(report: SpeedReport):
+    R, _, _, H, _ = _s(); n = report.router
+    if n not in H: H[n] = []
+    H[n].append({"ts":datetime.now().isoformat(),"vpn_down":report.vpn_down,"vpn_up":report.vpn_up,"ru_down":report.ru_down,"ru_up":report.ru_up,"ping":report.ping,"ru_ping":report.ru_ping})
+    save_json(config.SPEED_FILE, H)
+    if 0 < report.vpn_down < 5: await notify(n,"SPEED_LOW",f"VPN: {report.vpn_down:.1f} Mbps",R)
+    return {"ok": True}
+
+@router.get("/status")
+async def full_status():
+    R, S, W, H, _ = _s()
+    return {"routers":R,"sites":dict(S),"watchdog":dict(W),"speed":{k:v[-24:] for k,v in H.items()},"events":events[-30:]}
+
+@router.get("/speed/{name}")
+async def router_speed(name: str):
+    _, _, _, H, _ = _s(); return H.get(name, [])
+
+@router.get("/events")
+async def get_events(limit: int = 50): return events[-limit:]
+
+@router.get("/hydra/domain.conf")
+async def hd(): return Response(content=generate_domain_conf(load_hydra_config()),media_type="text/plain")
+@router.get("/hydra/ip.list")
+async def hi(): return Response(content=generate_ip_list(load_hydra_config()),media_type="text/plain")
+@router.get("/hydra/version")
+async def hv(): return Response(content=get_config_version(load_hydra_config()),media_type="text/plain")
+@router.get("/hydra/config")
+async def hc(): return load_hydra_config().model_dump()
+@router.post("/hydra/domain-group")
+async def hadg(g: DomainGroup):
+    c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=g.name]; c.domain_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
+@router.post("/hydra/ip-group")
+async def haig(g: IpGroup):
+    c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=g.name]; c.ip_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
+@router.delete("/hydra/domain-group/{name}")
+async def hddg(name:str): c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=name]; save_hydra_config(c); return {"ok":True}
+@router.delete("/hydra/ip-group/{name}")
+async def hdig(name:str): c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=name]; save_hydra_config(c); return {"ok":True}
+@router.post("/hydra/import")
+async def him(request: Request):
+    b=await request.json(); c=load_hydra_config()
+    if b.get("domain_conf"): c.domain_groups=parse_domain_conf(b["domain_conf"])
+    if b.get("ip_list"): c.ip_groups=parse_ip_list(b["ip_list"])
+    c.version=get_config_version(c); save_hydra_config(c)
+    return {"ok":True,"domain_groups":len(c.domain_groups),"ip_groups":len(c.ip_groups),"version":c.version}
