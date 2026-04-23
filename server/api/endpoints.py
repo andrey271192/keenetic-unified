@@ -59,9 +59,9 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
             '[ -f /opt/etc/HydraRoute/ip.list ] && echo "ip.list: $(wc -l < /opt/etc/HydraRoute/ip.list) строк" || echo "ip.list: не найден"'
         )
         r = await ssh_exec_verbose(ip, checks, user=user, password=password, timeout=60)
-        site_results = {}
-        router_results[-1]["raw"] = r["output"].strip()[:600]
-        router_results.append({"router": name, "ok": r["ok"], "sites": site_results, "error": "" if r["ok"] else r["output"][:100]})
+        import re as _re
+        raw = _re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', r["output"]).strip()[:600]
+        router_results.append({"router": name, "ok": r["ok"], "raw": raw, "sites": {}, "error": "" if r["ok"] else raw[:100]})
     # Send summary to Telegram
     lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
     for rr in router_results:

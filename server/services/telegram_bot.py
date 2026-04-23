@@ -118,7 +118,7 @@ async def _handle(text):
                 if not r["ok"]:
                     lines.append(f"⚠️ <b>{rname}</b>: нет SSH")
                     continue
-                raw = r["output"].strip()
+                raw = _escape(r["output"].strip())
                 neo_ok = "running" in raw.lower() or "alive" in raw.lower()
                 vpn_ups = [l.replace("=UP","") for l in raw.splitlines() if l.strip().endswith("=UP")]
                 neo_icon = "✅" if neo_ok else "❌"
