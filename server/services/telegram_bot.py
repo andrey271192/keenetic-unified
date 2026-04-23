@@ -38,19 +38,21 @@ async def telegram_bot_loop():
         except Exception as e: logger.error(f"TG: {e}"); await asyncio.sleep(10)
 
 def _get_router_ip(name):
+    """Returns (ip, display_name, real_key, ssh_user, ssh_pass)."""
     R = load_json(config.ROUTERS_FILE, {})
-    # Case-insensitive lookup
     r = R.get(name)
     real_name = name
     if not r:
         for k, v in R.items():
             if k.lower() == name.lower():
                 r = v; real_name = k; break
-    if not r: return None, None, None
+    if not r: return None, None, None, None, None
     ip = r.get("ip", "") or r.get("wan_ip", "")
     dn = r.get("display_name") or real_name
-    if not ip: return "", dn, real_name
-    return ip, dn, real_name
+    ssh_user = r.get("user") or config.SSH_USER
+    ssh_pass = r.get("password") or config.SSH_PASS
+    if not ip: return "", dn, real_name, ssh_user, ssh_pass
+    return ip, dn, real_name, ssh_user, ssh_pass
 
 async def _handle(text):
     p = text.split(maxsplit=2); cmd = p[0].lower()
@@ -134,35 +136,34 @@ async def _handle(text):
 
     elif cmd == "/ssh":
         if not arg1: return "❓ /ssh имя команда\n\nПример: /ssh andrey show interface"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, u, p = _get_router_ip(arg1)
         if not ip: return f"❌ '{arg1}' — нет IP. Добавь IP через /admin или watchdog\n\n" + _router_list()
         ssh_cmd = arg2 or "show version"
-        result = await ssh_exec(ip, ssh_cmd)
+        result = await ssh_exec(ip, ssh_cmd, user=u, password=p)
         return f"🔧 <b>{dn}</b> ({ip})\n$ {ssh_cmd}\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/neo":
         if not arg1: return "❓ /neo имя restart|status"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, u, p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"
         subcmd = arg2 or "status"
-        result = await ssh_exec(ip, f"neo {subcmd}")
+        result = await ssh_exec(ip, f"neo {subcmd}", user=u, password=p)
         return f"🔄 <b>{dn}</b> neo {subcmd}\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/reboot":
         if not arg1: return "❓ /reboot имя"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, u, p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"
-        result = await ssh_exec(ip, "reboot")
+        result = await ssh_exec(ip, "reboot", user=u, password=p)
         return f"♻️ <b>{dn}</b> — перезагрузка отправлена\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/ping":
         if not arg1: return "❓ /ping имя"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, _u, _p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"
-        import asyncio
         try:
             proc = await asyncio.create_subprocess_exec("ping", "-c", "4", "-W", "3", ip,
                 stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -172,18 +173,18 @@ async def _handle(text):
 
     elif cmd == "/uptime":
         if not arg1: return "❓ /uptime имя"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, u, p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"
-        result = await ssh_exec(ip, "uptime")
+        result = await ssh_exec(ip, "uptime", user=u, password=p)
         return f"⏱ <b>{dn}</b>\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/interfaces":
         if not arg1: return "❓ /interfaces имя"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, u, p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"
-        result = await ssh_exec(ip, "ip -br addr show")
+        result = await ssh_exec(ip, "ip -br addr show", user=u, password=p)
         return f"🌐 <b>{dn}</b> интерфейсы\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/speed":
@@ -238,10 +239,10 @@ async def _handle(text):
 
     elif cmd == "/update":
         if not arg1: return "❓ /update имя — обновить домены на роутере"
-        ip, dn, _ = _get_router_ip(arg1)
+        ip, dn, _, u, p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"
-        result = await ssh_exec(ip, "/opt/bin/hydra_update.sh", timeout=30)
+        result = await ssh_exec(ip, "/opt/bin/hydra_update.sh", user=u, password=p, timeout=30)
         return f"📋 <b>{dn}</b> — обновление доменов\n\n<pre>{_escape(result)}</pre>"
 
     elif cmd == "/setip":
