@@ -98,9 +98,9 @@ async def hadg(g: DomainGroup):
 async def haig(g: IpGroup):
     c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=g.name]; c.ip_groups.append(g); c.version=get_config_version(c); save_hydra_config(c); return {"ok":True,"version":c.version}
 @router.delete("/hydra/domain-group/{name}")
-async def hddg(name:str): c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=name]; save_hydra_config(c); return {"ok":True}
+async def hddg(name:str): c=load_hydra_config(); c.domain_groups=[x for x in c.domain_groups if x.name!=name]; c.version=get_config_version(c); save_hydra_config(c); return {"ok":True}
 @router.delete("/hydra/ip-group/{name}")
-async def hdig(name:str): c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=name]; save_hydra_config(c); return {"ok":True}
+async def hdig(name:str): c=load_hydra_config(); c.ip_groups=[x for x in c.ip_groups if x.name!=name]; c.version=get_config_version(c); save_hydra_config(c); return {"ok":True}
 @router.post("/hydra/import")
 async def him(request: Request):
     b=await request.json(); c=load_hydra_config()
@@ -111,22 +111,36 @@ async def him(request: Request):
 
 @router.post("/hydra/push_all")
 async def push_all_routers():
+    import base64
     from ..services.ssh_client import ssh_exec
     R, _, _, _, _ = _s()
+    cfg = load_hydra_config()
+    dc = generate_domain_conf(cfg)
+    il = generate_ip_list(cfg)
+    dc_b64 = base64.b64encode(dc.encode()).decode()
+    il_b64 = base64.b64encode(il.encode()).decode()
+    cmd = (
+        f"HR_DIR=$([ -d /opt/etc/HydraRoute ] && echo /opt/etc/HydraRoute || echo /opt/etc/hydra); "
+        f"mkdir -p \"$HR_DIR\"; "
+        f"printf '%s' '{dc_b64}' | base64 -d > \"$HR_DIR/domain.conf\"; "
+        f"printf '%s' '{il_b64}' | base64 -d > \"$HR_DIR/ip.list\"; "
+        f"neo restart >/dev/null 2>&1; "
+        f"echo OK"
+    )
     results = []
     ok = failed = 0
-    for name, cfg in list(R.items()):
-        ip = cfg.get("ip","") or cfg.get("wan_ip","")
+    for name, rcfg in list(R.items()):
+        ip = rcfg.get("ip","") or rcfg.get("wan_ip","")
         if not ip:
             results.append({"router":name,"status":"skip","message":"нет IP"})
             continue
-        user = cfg.get("user") or "root"
-        password = cfg.get("password") or "keenetic"
-        out = await ssh_exec(ip, "/opt/bin/hydra_update.sh", user=user, password=password, timeout=30)
-        if "OK" in out or "already" in out.lower() or out.strip()=="":
-            results.append({"router":name,"status":"ok","message":out.strip() or "обновлено"})
+        user = rcfg.get("user") or "root"
+        password = rcfg.get("password") or "keenetic"
+        out = await ssh_exec(ip, cmd, user=user, password=password, timeout=60)
+        if "OK" in out:
+            results.append({"router":name,"status":"ok","message":"обновлено"})
             ok += 1
         else:
-            results.append({"router":name,"status":"ok","message":out.strip()})
-            ok += 1
+            results.append({"router":name,"status":"error","message":out.strip()[:200]})
+            failed += 1
     return {"ok":ok,"failed":failed,"results":results}

@@ -61,6 +61,9 @@ input.f-inp:focus,select.f-sel:focus{border-color:var(--accent)}
 .msg.err{display:block;background:rgba(255,69,58,.1);color:var(--red)}
 /* Push log */
 .push-log{background:#111;border-radius:10px;padding:12px;font-size:11px;font-family:monospace;color:var(--muted);max-height:100px;overflow-y:auto;margin-top:10px;display:none}
+/* Pending banner */
+.pending-banner{background:rgba(255,159,10,.12);border:1px solid rgba(255,159,10,.4);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;display:none}
+.pending-banner span{font-size:13px;color:var(--orange);font-weight:600}
 /* Import */
 .imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:600px){.imp-grid{grid-template-columns:1fr};.groups-grid{grid-template-columns:1fr}}
@@ -84,6 +87,10 @@ textarea.imp-ta:focus{border-color:var(--accent)}
     <a href="/api/hydra/domain.conf" target="_blank" class="btn btn-ghost" style="text-decoration:none">↓ domain.conf</a>
     <a href="/api/hydra/ip.list" target="_blank" class="btn btn-ghost" style="text-decoration:none">↓ ip.list</a>
   </div>
+</div>
+<div id="pending-banner" class="pending-banner">
+  <span>⚠️ Есть несохранённые изменения — роутеры ещё не обновлены</span>
+  <button class="btn btn-o" onclick="pushAll()">📡 Отправить сейчас</button>
 </div>
 <div id="push-log" class="push-log"></div>
 
@@ -174,6 +181,16 @@ textarea.imp-ta:focus{border-color:var(--accent)}
 
 <script>
 let CFG = {domain_groups:[], ip_groups:[]};
+let pendingChanges = false;
+
+function markPending(){
+  pendingChanges = true;
+  document.getElementById('pending-banner').style.display='flex';
+}
+function clearPending(){
+  pendingChanges = false;
+  document.getElementById('pending-banner').style.display='none';
+}
 
 // ─── Policy color class ───────────────────────────────────────────────────
 function pc(p){ const m={'HydraRoute':'p-HydraRoute','RU':'p-RU','Google':'p-Google','amnezia_моя':'p-HydraRoute'}; return m[p]||'p-default'; }
@@ -279,6 +296,7 @@ async function saveGroup(type, idx){
   try{
     await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
     sm('view-msg','ok',`✅ ${g.name} сохранён (${entries.length} записей)`);
+    markPending();
     await loadConfig();
   }catch(e){sm('view-msg','err','❌ '+e)}
 }
@@ -288,6 +306,7 @@ async function deleteGroup(type, name){
   const url = type==='domain' ? `/api/hydra/domain-group/${name}` : `/api/hydra/ip-group/${name}`;
   await fetch(url,{method:'DELETE'});
   sm('view-msg','ok',`🗑 ${name} удалён`);
+  markPending();
   await loadConfig();
 }
 
@@ -296,6 +315,7 @@ async function toggleGroup(type, idx){
   const updated = {...g, enabled: !g.enabled};
   const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
   await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
+  markPending();
   await loadConfig();
 }
 
@@ -322,6 +342,7 @@ async function saveNewGroup(type){
   document.getElementById(`${pfx}-name`).value='';
   document.getElementById(`${pfx}-entries`).value='';
   toggleNewGroup(type);
+  markPending();
   await loadConfig();
 }
 
@@ -334,8 +355,9 @@ async function pushAll(){
   try{
     const j=await(await fetch('/api/hydra/push_all',{method:'POST'})).json();
     log.textContent='';
-    for(const r of j.results) log.textContent+=`${r.status==='ok'?'✅':'❌'} ${r.router}: ${r.message}\n`;
+    for(const r of j.results) log.textContent+=`${r.status==='ok'?'✅':r.status==='skip'?'⏭':'❌'} ${r.router}: ${r.message}\n`;
     log.textContent+=`\nИтого: ${j.ok} успешно, ${j.failed} ошибок`;
+    if(j.failed===0) clearPending();
   }catch(e){log.textContent='❌ '+e}
   btn.disabled=false; btn.innerHTML='📡 Обновить все роутеры';
 }
