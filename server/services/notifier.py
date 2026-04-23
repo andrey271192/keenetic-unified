@@ -8,11 +8,18 @@ from ..database import save_json, load_json
 
 logger = logging.getLogger("keenetic")
 events: list = load_json(config.EVENTS_FILE, [])
-# key -> last notification datetime; avoids duplicate bursts within cooldown window
-_last: dict = {}
-# events that should always fire on state-change (no cooldown needed — already gated upstream)
-_NO_COOLDOWN = {"ROUTER_ONLINE", "ROUTER_OFFLINE", "NEO_RECOVERY", "NEO_CRITICAL"}
-_COOLDOWN_SEC = 300  # 5 min cooldown for repeated identical alerts
+
+# Per-router incident tracker: {router: {incident_group: count}}
+# Incident resets when a RECOVERY event arrives.
+_incident_count: dict = {}
+
+# Events that signal the START of an incident (limited to 3 notifications)
+_INCIDENT_EVENTS = {"NEO_RESTART", "NEO_CRITICAL", "WATCHDOG_STALE", "WATCHDOG_DEAD", "SITE_DOWN", "SPEED_LOW"}
+# Events that CLOSE an incident and reset the counter for that router
+_RECOVERY_EVENTS = {"ROUTER_ONLINE", "NEO_RECOVERY"}
+
+MAX_INCIDENT_NOTIFY = 3
+
 EMOJI = {"SITE_DOWN":"❌","SITE_UP":"✅","NEO_RESTART":"🔄","NEO_RECOVERY":"✅",
     "NEO_CRITICAL":"🚨","WATCHDOG_DEAD":"💀","WATCHDOG_STALE":"⚠️",
     "ROUTER_OFFLINE":"📡❌","ROUTER_ONLINE":"📡✅","SPEED_LOW":"🐌","DOMAIN_UPDATE":"📋"}
@@ -34,22 +41,31 @@ def _email(subj, body):
     except Exception as e: logger.error(f"Email: {e}")
 
 async def notify(router, event, detail, routers=None):
-    key = f"{router}:{event}"
     now = datetime.now()
-    if event not in _NO_COOLDOWN:
-        last_ts = _last.get(key)
-        if last_ts and (now - last_ts).total_seconds() < _COOLDOWN_SEC:
+
+    # Recovery events reset the incident counter
+    if event in _RECOVERY_EVENTS:
+        _incident_count.pop(router, None)
+
+    # Incident events are limited to MAX_INCIDENT_NOTIFY per open incident
+    if event in _INCIDENT_EVENTS:
+        count = _incident_count.get(router, 0) + 1
+        _incident_count[router] = count
+        if count > MAX_INCIDENT_NOTIFY:
+            logger.info(f"Notify suppressed (incident #{count}>{MAX_INCIDENT_NOTIFY}): {router}|{event}")
             return
-    _last[key] = now
-    ts = datetime.now().isoformat()
+        # Add count suffix so user sees "1/3", "2/3", "3/3"
+        detail = f"{detail} [{count}/{MAX_INCIDENT_NOTIFY}]"
+
+    ts = now.isoformat()
     events.append({"ts": ts, "router": router, "event": event, "detail": detail})
     if len(events) > 500: events[:] = events[-500:]
     save_json(config.EVENTS_FILE, events)
+
     emoji = EMOJI.get(event, "ℹ️")
     dn = router
     if routers and router in routers: dn = routers[router].get("display_name") or router
     msg = f"{emoji} <b>{dn}</b>\n{detail}"
     await send_telegram(msg)
-    # Email дублирует ВСЕ уведомления
     await asyncio.to_thread(_email, f"Keenetic: {event} — {dn}", f"<p>{msg}</p>")
     logger.info(f"Notify: {router}|{event}|{detail}")
