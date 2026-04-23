@@ -155,7 +155,7 @@ async def push_all_routers(x_admin_password: str = Header("")):
 @router.post("/ssh/all")
 async def ssh_all(request: Request, x_admin_password: str = Header("")):
     _chk(x_admin_password)
-    from ..services.ssh_client import ssh_exec
+    from ..services.ssh_client import ssh_exec_verbose
     b = await request.json()
     ssh_cmd = b.get("command","").strip()
     if not ssh_cmd: raise HTTPException(400, "command required")
@@ -165,13 +165,18 @@ async def ssh_all(request: Request, x_admin_password: str = Header("")):
     for name, rcfg in list(R.items()):
         ip = rcfg.get("ip","") or rcfg.get("wan_ip","")
         if not ip:
-            results.append({"router":name,"status":"skip","output":"нет IP"})
+            results.append({"router":name,"status":"skip","exit_code":None,"output":"нет IP","stderr":""})
             continue
         user = rcfg.get("user") or config.SSH_USER
         password = rcfg.get("password") or config.SSH_PASS
-        out = await ssh_exec(ip, ssh_cmd, user=user, password=password, timeout=60)
-        is_err = out.startswith("Ошибка") or "❌" in out[:10] or "⏰" in out[:5]
-        results.append({"router":name,"status":"error" if is_err else "ok","output":out.strip()[:500]})
-        if is_err: failed += 1
-        else: ok += 1
+        r = await ssh_exec_verbose(ip, ssh_cmd, user=user, password=password, timeout=60)
+        results.append({
+            "router": name,
+            "status": "ok" if r["ok"] else "error",
+            "exit_code": r["exit_code"],
+            "output": r["output"][:800],
+            "stderr": r["stderr"][:200],
+        })
+        if r["ok"]: ok += 1
+        else: failed += 1
     return {"ok":ok,"failed":failed,"command":ssh_cmd,"results":results}

@@ -142,6 +142,7 @@ async def _handle(text):
         if arg1.lower() == "all":
             ssh_cmd = arg2 or "uptime"
             from ..main import routers as _all_r
+            from .ssh_client import ssh_exec_verbose
             lines = [f"🔧 <b>SSH all</b>: <code>{ssh_cmd}</code>\n"]
             ok = fail = 0
             for rname, rcfg in list(_all_r.items()):
@@ -149,12 +150,13 @@ async def _handle(text):
                 if not rip: lines.append(f"⏭ <b>{rname}</b>: нет IP"); continue
                 ru = rcfg.get("user") or config.SSH_USER
                 rp = rcfg.get("password") or config.SSH_PASS
-                out = await ssh_exec(rip, ssh_cmd, user=ru, password=rp, timeout=60)
-                status = "✅" if not out.startswith("Ошибка") and "❌" not in out[:5] else "❌"
-                if status == "✅": ok += 1
+                r = await ssh_exec_verbose(rip, ssh_cmd, user=ru, password=rp, timeout=60)
+                icon = "✅" if r["ok"] else "❌"
+                ec = r["exit_code"]
+                if r["ok"]: ok += 1
                 else: fail += 1
-                short = _escape(out[:300])
-                lines.append(f"{status} <b>{rname}</b>\n<pre>{short}</pre>")
+                body = _escape((r["output"] or r["stderr"] or "")[:400])
+                lines.append(f"{icon} <b>{rname}</b> <code>exit={ec}</code>\n<pre>{body}</pre>")
             lines.append(f"\nИтого: {ok} ✅  {fail} ❌")
             return "\n".join(lines)
         # /ssh <name> <cmd>

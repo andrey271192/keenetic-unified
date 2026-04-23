@@ -176,11 +176,14 @@ async function sshAll(){
     const j=await(await fetch('/api/ssh/all',{method:'POST',headers:hdr(),body:JSON.stringify({command:cmd})})).json();
     log.innerHTML='';
     for(const r of j.results){
-      const color=r.status==='ok'?'#30d158':r.status==='skip'?'#86868b':'#ff453a';
+      const clr=r.status==='ok'?'#30d158':r.status==='skip'?'#86868b':'#ff453a';
       const icon=r.status==='ok'?'✅':r.status==='skip'?'⏭':'❌';
-      log.innerHTML+=`<div style="margin-bottom:8px"><span style="color:${color}">${icon} <b>${r.router}</b></span>\n<span style="color:#86868b">${(r.output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span></div>`;
+      const ec=r.exit_code!=null?` <span style="color:${r.exit_code===0?'#30d158':'#ff453a'};font-size:10px">[exit: ${r.exit_code}]</span>`:'';
+      const out=(r.output||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const err=r.stderr?`\n<span style="color:#ff9f0a">${r.stderr.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`:'';
+      log.innerHTML+=`<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #222"><span style="color:${clr}">${icon} <b>${r.router}</b>${ec}</span>\n<span style="color:#ccc;white-space:pre-wrap">${out}</span>${err}</div>`;
     }
-    log.innerHTML+=`<div style="margin-top:8px;color:#86868b;border-top:1px solid #38383a;padding-top:8px">Итого: ${j.ok} ✅  ${j.failed} ❌</div>`;
+    log.innerHTML+=`<div style="margin-top:4px;color:#86868b">Итого: <span style="color:#30d158">${j.ok} ✅</span>  <span style="color:#ff453a">${j.failed} ❌</span></div>`;
   }catch(e){ sm('ssm','err','❌ '+e); }
   btn.disabled=false; btn.textContent='▶ Выполнить';
 }
