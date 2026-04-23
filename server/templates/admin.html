@@ -72,6 +72,23 @@ textarea:focus{border-color:var(--accent)}
     <div class="row"><input id="d-n" placeholder="Имя" style="width:180px"><button class="btn btn-r" onclick="delR()">✗</button></div>
     <div id="dm" class="msg"></div>
   </div>
+  <div class="section">
+    <h2>💻 SSH — выполнить на всех роутерах</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Команда выполняется одновременно на всех роутерах у которых есть IP</p>
+    <div class="row">
+      <input id="ssh-cmd" placeholder="opkg update" style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')sshAll()">
+      <button class="btn btn-b" onclick="sshAll()" id="ssh-btn">▶ Выполнить</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7;font-size:11px;padding:5px 12px" onclick="quickSSH('opkg update')">opkg update</button>
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7;font-size:11px;padding:5px 12px" onclick="quickSSH('opkg upgrade')">opkg upgrade</button>
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7;font-size:11px;padding:5px 12px" onclick="quickSSH('uptime')">uptime</button>
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7;font-size:11px;padding:5px 12px" onclick="quickSSH('neo status')">neo status</button>
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7;font-size:11px;padding:5px 12px" onclick="quickSSH('cat /opt/var/log/hydra_update.log | tail -5')">hydra log</button>
+    </div>
+    <div id="ssh-log" style="display:none;background:#111;border-radius:10px;padding:14px;font-size:11px;font-family:monospace;max-height:320px;overflow-y:auto;margin-top:8px"></div>
+    <div id="ssm" class="msg"></div>
+  </div>
   <div class="section"><h2>📋 Зарегистрированные роутеры</h2><div id="list">...</div></div>
   <div class="section"><h2>✏️ Отображаемые имена</h2>
     <p style="font-size:12px;color:var(--muted);margin-bottom:10px">имя: Красивое название (по одному на строку)</p>
@@ -144,6 +161,28 @@ async function saveMap(){
     await fetch(`/api/routers/${n}`,{method:'POST',headers:hdr(),body:JSON.stringify(all[n])});ok++;
   }
   sm('mm','ok',`✅ Сохранено: ${ok}`);loadR();
+}
+
+function quickSSH(cmd){ document.getElementById('ssh-cmd').value=cmd; sshAll(); }
+
+async function sshAll(){
+  const cmd=document.getElementById('ssh-cmd').value.trim();
+  if(!cmd){ sm('ssm','err','❌ Введи команду'); return; }
+  const btn=document.getElementById('ssh-btn');
+  const log=document.getElementById('ssh-log');
+  btn.disabled=true; btn.textContent='⏳ Выполняю...';
+  log.style.display='block'; log.innerHTML='<span style="color:#86868b">Выполняю: '+cmd+'...</span>\n';
+  try{
+    const j=await(await fetch('/api/ssh/all',{method:'POST',headers:hdr(),body:JSON.stringify({command:cmd})})).json();
+    log.innerHTML='';
+    for(const r of j.results){
+      const color=r.status==='ok'?'#30d158':r.status==='skip'?'#86868b':'#ff453a';
+      const icon=r.status==='ok'?'✅':r.status==='skip'?'⏭':'❌';
+      log.innerHTML+=`<div style="margin-bottom:8px"><span style="color:${color}">${icon} <b>${r.router}</b></span>\n<span style="color:#86868b">${(r.output||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span></div>`;
+    }
+    log.innerHTML+=`<div style="margin-top:8px;color:#86868b;border-top:1px solid #38383a;padding-top:8px">Итого: ${j.ok} ✅  ${j.failed} ❌</div>`;
+  }catch(e){ sm('ssm','err','❌ '+e); }
+  btn.disabled=false; btn.textContent='▶ Выполнить';
 }
 
 function sm(id,c,t){const e=document.getElementById(id);e.className='msg '+c;e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',4000)}

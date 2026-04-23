@@ -151,3 +151,27 @@ async def push_all_routers(x_admin_password: str = Header("")):
             results.append({"router":name,"status":"error","message":out.strip()[:200]})
             failed += 1
     return {"ok":ok,"failed":failed,"results":results}
+
+@router.post("/ssh/all")
+async def ssh_all(request: Request, x_admin_password: str = Header("")):
+    _chk(x_admin_password)
+    from ..services.ssh_client import ssh_exec
+    b = await request.json()
+    ssh_cmd = b.get("command","").strip()
+    if not ssh_cmd: raise HTTPException(400, "command required")
+    R, _, _, _, _ = _s()
+    results = []
+    ok = failed = 0
+    for name, rcfg in list(R.items()):
+        ip = rcfg.get("ip","") or rcfg.get("wan_ip","")
+        if not ip:
+            results.append({"router":name,"status":"skip","output":"нет IP"})
+            continue
+        user = rcfg.get("user") or config.SSH_USER
+        password = rcfg.get("password") or config.SSH_PASS
+        out = await ssh_exec(ip, ssh_cmd, user=user, password=password, timeout=60)
+        is_err = out.startswith("Ошибка") or "❌" in out[:10] or "⏰" in out[:5]
+        results.append({"router":name,"status":"error" if is_err else "ok","output":out.strip()[:500]})
+        if is_err: failed += 1
+        else: ok += 1
+    return {"ok":ok,"failed":failed,"command":ssh_cmd,"results":results}

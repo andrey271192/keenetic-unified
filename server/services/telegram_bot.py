@@ -68,7 +68,8 @@ async def _handle(text):
             "/events — последние события\n"
             "/watchdog &lt;имя&gt; — watchdog статус\n\n"
             "🔧 <b>Управление:</b>\n"
-            "/ssh &lt;имя&gt; &lt;команда&gt; — SSH\n"
+            "/ssh &lt;имя&gt; &lt;команда&gt; — SSH команда\n"
+            "/ssh all &lt;команда&gt; — SSH на все роутеры\n"
             "/neo &lt;имя&gt; restart — перезапуск neo\n"
             "/neo &lt;имя&gt; status — статус neo\n"
             "/reboot &lt;имя&gt; — перезагрузка роутера\n"
@@ -136,7 +137,27 @@ async def _handle(text):
         return "\n".join(lines)
 
     elif cmd == "/ssh":
-        if not arg1: return "❓ /ssh имя команда\n\nПример: /ssh andrey show interface"
+        if not arg1: return "❓ /ssh &lt;имя|all&gt; &lt;команда&gt;\n\nПример: /ssh andrey opkg update\nМасово: /ssh all opkg update"
+        # /ssh all <cmd>
+        if arg1.lower() == "all":
+            ssh_cmd = arg2 or "uptime"
+            from ..main import routers as _all_r
+            lines = [f"🔧 <b>SSH all</b>: <code>{ssh_cmd}</code>\n"]
+            ok = fail = 0
+            for rname, rcfg in list(_all_r.items()):
+                rip = rcfg.get("ip","") or rcfg.get("wan_ip","")
+                if not rip: lines.append(f"⏭ <b>{rname}</b>: нет IP"); continue
+                ru = rcfg.get("user") or config.SSH_USER
+                rp = rcfg.get("password") or config.SSH_PASS
+                out = await ssh_exec(rip, ssh_cmd, user=ru, password=rp, timeout=60)
+                status = "✅" if not out.startswith("Ошибка") and "❌" not in out[:5] else "❌"
+                if status == "✅": ok += 1
+                else: fail += 1
+                short = _escape(out[:300])
+                lines.append(f"{status} <b>{rname}</b>\n<pre>{short}</pre>")
+            lines.append(f"\nИтого: {ok} ✅  {fail} ❌")
+            return "\n".join(lines)
+        # /ssh <name> <cmd>
         ip, dn, _, u, p = _get_router_ip(arg1)
         if not ip: return f"❌ '{arg1}' — нет IP. Добавь IP через /admin или watchdog\n\n" + _router_list()
         ssh_cmd = arg2 or "show version"
