@@ -1,58 +1,91 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Домены HydraRoute</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--border:#38383a;--text:#f5f5f7;--muted:#86868b;--accent:#0a84ff;--green:#30d158;--red:#ff453a;--yellow:#ffd60a;--orange:#ff9f0a}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--text);padding:20px 28px;max-width:1100px;margin:0 auto}
+:root{--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--card3:#3a3a3c;--border:#38383a;--text:#f5f5f7;--muted:#86868b;--accent:#0a84ff;--green:#30d158;--red:#ff453a;--yellow:#ffd60a;--orange:#ff9f0a}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--text);padding:20px 24px;max-width:1200px;margin:0 auto}
 a{color:var(--accent);text-decoration:none}
 h1{font-size:22px;font-weight:700;margin-bottom:4px}
-.sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;margin-top:12px}
+.topbar-btns{display:flex;gap:8px;flex-wrap:wrap}
 .tabs{display:flex;gap:8px;margin-bottom:20px}
 .tab{padding:8px 18px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:var(--card);color:var(--muted)}
 .tab.active{background:var(--accent);color:#fff}
-.section{background:var(--card);border-radius:16px;padding:20px 24px;margin-bottom:16px}
-.section h2{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}}
-.group{background:var(--card2);border-radius:12px;padding:14px}
-.group-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.section{background:var(--card);border-radius:16px;padding:18px 20px;margin-bottom:16px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.section-head h2{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+/* Group card */
+.group{background:var(--card2);border-radius:12px;padding:0;overflow:hidden;transition:box-shadow .2s}
+.group.editing{box-shadow:0 0 0 2px var(--accent)}
+.group-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 8px}
 .group-name{font-weight:700;font-size:13px}
-.badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
-.badge-blue{background:rgba(10,132,255,.15);color:var(--accent)}
-.badge-green{background:rgba(48,209,88,.15);color:var(--green)}
-.badge-red{background:rgba(255,69,58,.15);color:var(--red)}
-.badge-yellow{background:rgba(255,214,10,.15);color:var(--yellow)}
-.entries{font-size:11px;color:var(--muted);line-height:1.6;max-height:80px;overflow-y:auto;font-family:monospace}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-input,select{background:#2c2c2e;border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none}
-input:focus,select:focus{border-color:var(--accent)}
-input::placeholder{color:var(--muted)}
-.btn{padding:9px 20px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.group-actions{display:flex;gap:4px}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;color:var(--muted)}
+.icon-btn:hover{background:var(--card3);color:var(--text)}
+.badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;white-space:nowrap}
+.p-HydraRoute,.p-amnezia_моя{background:rgba(10,132,255,.15);color:var(--accent)}
+.p-RU{background:rgba(255,214,10,.15);color:var(--yellow)}
+.p-Google{background:rgba(48,209,88,.15);color:var(--green)}
+.p-default{background:rgba(255,159,10,.15);color:var(--orange)}
+/* View mode */
+.group-view{padding:0 14px 12px}
+.entries-list{font-size:11px;color:var(--muted);line-height:1.7;max-height:90px;overflow-y:auto;font-family:monospace}
+.group-meta{font-size:11px;color:var(--border);margin-top:6px}
+/* Edit mode */
+.group-edit{padding:10px 14px 14px;display:none;border-top:1px solid var(--border)}
+.group-edit.open{display:block}
+.edit-label{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600}
+textarea.entries-ta{width:100%;min-height:120px;background:var(--card3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:11px;font-family:monospace;outline:none;resize:vertical}
+textarea.entries-ta:focus{border-color:var(--accent)}
+.add-quick{display:flex;gap:6px;margin-top:8px}
+input.quick-input{background:var(--card3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:monospace;outline:none;flex:1}
+input.quick-input:focus{border-color:var(--accent)}
+input.quick-input::placeholder{color:var(--muted)}
+.edit-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px}
+.edit-footer-left{display:flex;gap:6px}
+/* Buttons */
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
 .btn-b{background:var(--accent);color:#fff}.btn-r{background:var(--red);color:#fff}.btn-g{background:var(--green);color:#000}.btn-o{background:var(--orange);color:#000}
+.btn-ghost{background:var(--card2);color:var(--muted)}.btn-ghost:hover{background:var(--card3)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-textarea{width:100%;min-height:160px;background:#2c2c2e;border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-size:12px;font-family:monospace;outline:none;resize:vertical}
-textarea:focus{border-color:var(--accent)}
-.msg{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;margin-top:8px;display:none}
+/* New group form */
+.new-group-form{background:var(--card2);border-radius:12px;padding:14px;border:1px dashed var(--border);display:none}
+.new-group-form.open{display:block}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+input.f-inp,select.f-sel{background:var(--card3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none}
+input.f-inp:focus,select.f-sel:focus{border-color:var(--accent)}
+/* Messages */
+.msg{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-top:6px;display:none}
 .msg.ok{display:block;background:rgba(48,209,88,.1);color:var(--green)}
 .msg.err{display:block;background:rgba(255,69,58,.1);color:var(--red)}
-.version{font-size:11px;color:var(--muted);font-family:monospace}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.push-btn{display:flex;gap:8px}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+/* Push log */
+.push-log{background:#111;border-radius:10px;padding:12px;font-size:11px;font-family:monospace;color:var(--muted);max-height:100px;overflow-y:auto;margin-top:10px;display:none}
+/* Import */
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.imp-grid{grid-template-columns:1fr};.groups-grid{grid-template-columns:1fr}}
+textarea.imp-ta{width:100%;min-height:200px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:11px;font-family:monospace;outline:none;resize:vertical}
+textarea.imp-ta:focus{border-color:var(--accent)}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:5px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.log{background:#1a1a1a;border-radius:10px;padding:12px;font-size:11px;font-family:monospace;color:var(--muted);max-height:120px;overflow-y:auto;margin-top:10px;display:none}
+.version{font-size:11px;color:var(--muted);font-family:monospace}
+.toggle{width:34px;height:20px;background:var(--border);border-radius:10px;position:relative;cursor:pointer;border:none;transition:.2s}
+.toggle.on{background:var(--green)}.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s}
+.toggle.on::after{left:16px}
 </style></head><body>
 <a href="/">← На главную</a>
-<div class="topbar" style="margin-top:12px">
+<div class="topbar">
   <div>
     <h1>🌐 Домены HydraRoute</h1>
-    <div class="sub">Единая конфигурация для всех роутеров · <span id="ver" class="version">...</span></div>
+    <div class="sub">Единая конфигурация · <span id="ver" class="version">...</span></div>
   </div>
-  <div class="push-btn">
+  <div class="topbar-btns">
     <button class="btn btn-b" onclick="pushAll()" id="push-btn">📡 Обновить все роутеры</button>
-    <a href="/api/hydra/domain.conf" target="_blank" class="btn btn-o" style="display:inline-flex;align-items:center;text-decoration:none">↓ domain.conf</a>
+    <a href="/api/hydra/domain.conf" target="_blank" class="btn btn-ghost" style="text-decoration:none">↓ domain.conf</a>
+    <a href="/api/hydra/ip.list" target="_blank" class="btn btn-ghost" style="text-decoration:none">↓ ip.list</a>
   </div>
 </div>
-<div id="push-log" class="log"></div>
+<div id="push-log" class="push-log"></div>
 
 <div class="tabs">
   <button class="tab active" onclick="showTab('view')">📋 Конфигурация</button>
@@ -62,55 +95,90 @@ textarea:focus{border-color:var(--accent)}
 <!-- VIEW TAB -->
 <div id="tab-view">
   <div class="section">
-    <h2>📄 Группы доменов <span id="dg-count" class="badge badge-blue">0</span></h2>
-    <div id="domain-groups" class="grid"></div>
+    <div class="section-head">
+      <h2>📄 Группы доменов <span id="dg-count" class="badge p-HydraRoute">0</span></h2>
+      <button class="btn btn-b" onclick="toggleNewGroup('domain')" style="font-size:12px">+ Новая группа</button>
+    </div>
+    <div id="new-domain-form" class="new-group-form" style="margin-bottom:12px">
+      <div class="form-row">
+        <input class="f-inp" id="nd-name" placeholder="Имя группы" style="width:140px">
+        <select class="f-sel" id="nd-policy"><option>HydraRoute</option><option>RU</option><option>Google</option><option>amnezia_моя</option></select>
+        <select class="f-sel" id="nd-type"><option value="domain">domain</option><option value="geosite">geosite</option></select>
+      </div>
+      <textarea class="entries-ta" id="nd-entries" placeholder="Одна запись на строку:&#10;youtube.com&#10;netflix.com&#10;&#10;или через запятую (будет объединено в одну строку)" style="min-height:80px"></textarea>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn btn-g" onclick="saveNewGroup('domain')">✅ Создать</button>
+        <button class="btn btn-ghost" onclick="toggleNewGroup('domain')">Отмена</button>
+      </div>
+    </div>
+    <div id="domain-groups" class="groups-grid"></div>
   </div>
+
   <div class="section">
-    <h2>🔢 Группы IP <span id="ig-count" class="badge badge-green">0</span></h2>
-    <div id="ip-groups" class="grid"></div>
+    <div class="section-head">
+      <h2>🔢 Группы IP <span id="ig-count" class="badge p-RU">0</span></h2>
+      <button class="btn btn-b" onclick="toggleNewGroup('ip')" style="font-size:12px">+ Новая группа</button>
+    </div>
+    <div id="new-ip-form" class="new-group-form" style="margin-bottom:12px">
+      <div class="form-row">
+        <input class="f-inp" id="ni-name" placeholder="Имя группы" style="width:140px">
+        <select class="f-sel" id="ni-policy"><option>HydraRoute</option><option>RU</option><option>Google</option><option>amnezia_моя</option></select>
+        <select class="f-sel" id="ni-type"><option value="ip">ip</option><option value="geoip">geoip</option></select>
+      </div>
+      <textarea class="entries-ta" id="ni-entries" placeholder="Одна запись на строку:&#10;1.2.3.0/24&#10;geoip:ru" style="min-height:80px"></textarea>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn btn-g" onclick="saveNewGroup('ip')">✅ Создать</button>
+        <button class="btn btn-ghost" onclick="toggleNewGroup('ip')">Отмена</button>
+      </div>
+    </div>
+    <div id="ip-groups" class="groups-grid"></div>
   </div>
+  <div id="view-msg" class="msg"></div>
 </div>
 
 <!-- IMPORT TAB -->
 <div id="tab-import" style="display:none">
   <div class="section">
-    <h2>⬆ Импорт domain.conf + ip.list</h2>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Вставь содержимое файлов — формат сохраняется 1:1, порядок важен</p>
-    <div class="grid">
+    <div class="section-head"><h2>⬆ Импорт domain.conf + ip.list</h2></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Вставь содержимое файлов — формат сохраняется 1:1</p>
+    <div class="imp-grid">
       <div>
         <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--accent)">domain.conf</div>
-        <textarea id="dc-text" placeholder="##groupname&#10;domain1.com,domain2.com/PolicyName"></textarea>
+        <textarea class="imp-ta" id="dc-text" placeholder="##groupname&#10;domain1.com,domain2.com/PolicyName"></textarea>
       </div>
       <div>
         <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--green)">ip.list</div>
-        <textarea id="il-text" placeholder="##groupname&#10;/PolicyName&#10;1.2.3.0/24"></textarea>
+        <textarea class="imp-ta" id="il-text" placeholder="##groupname&#10;/PolicyName&#10;1.2.3.0/24"></textarea>
       </div>
     </div>
-    <div style="margin-top:12px;display:flex;gap:8px">
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-b" onclick="importFiles()">💾 Сохранить на сервер</button>
       <button class="btn btn-g" onclick="importAndPush()">💾📡 Сохранить + обновить все роутеры</button>
     </div>
     <div id="im" class="msg"></div>
   </div>
   <div class="section">
-    <h2>📤 Экспорт текущей конфигурации</h2>
-    <div class="grid">
+    <div class="section-head"><h2>📤 Текущая конфигурация (для копирования)</h2></div>
+    <div class="imp-grid">
       <div>
         <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--accent)">domain.conf</div>
-        <textarea id="dc-export" readonly></textarea>
+        <textarea class="imp-ta" id="dc-export" readonly></textarea>
       </div>
       <div>
         <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--green)">ip.list</div>
-        <textarea id="il-export" readonly></textarea>
+        <textarea class="imp-ta" id="il-export" readonly></textarea>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const POLICY_COLORS = {'HydraRoute':'badge-blue','RU':'badge-yellow','Google':'badge-green'};
-function pcolor(p){return POLICY_COLORS[p]||'badge-blue'}
+let CFG = {domain_groups:[], ip_groups:[]};
 
+// ─── Policy color class ───────────────────────────────────────────────────
+function pc(p){ const m={'HydraRoute':'p-HydraRoute','RU':'p-RU','Google':'p-Google','amnezia_моя':'p-HydraRoute'}; return m[p]||'p-default'; }
+
+// ─── Tab switch ───────────────────────────────────────────────────────────
 function showTab(t){
   document.getElementById('tab-view').style.display=t==='view'?'':'none';
   document.getElementById('tab-import').style.display=t==='import'?'':'none';
@@ -118,83 +186,180 @@ function showTab(t){
   if(t==='import') loadExport();
 }
 
+// ─── Load config ──────────────────────────────────────────────────────────
 async function loadConfig(){
-  const r=await(await fetch('/api/hydra/config')).json();
-  const ver=await(await fetch('/api/hydra/version')).text();
-  document.getElementById('ver').textContent='v: '+ver;
-
-  // Domain groups
-  const dg=document.getElementById('domain-groups');
-  document.getElementById('dg-count').textContent=r.domain_groups.length;
-  dg.innerHTML=r.domain_groups.map(g=>`
-    <div class="group">
-      <div class="group-head">
-        <span class="group-name">${g.name}</span>
-        <span class="badge ${pcolor(g.policy)}">${g.policy}${g.enabled?'':' OFF'}</span>
-      </div>
-      <div class="entries">${g.entries.join('<br>')}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">${g.entries.length} записей · ${g.entry_type}</div>
-    </div>`).join('');
-
-  // IP groups
-  const ig=document.getElementById('ip-groups');
-  document.getElementById('ig-count').textContent=r.ip_groups.length;
-  ig.innerHTML=r.ip_groups.map(g=>`
-    <div class="group">
-      <div class="group-head">
-        <span class="group-name">${g.name}</span>
-        <span class="badge ${pcolor(g.policy)}">${g.policy}${g.enabled?'':' OFF'}</span>
-      </div>
-      <div class="entries">${g.entries.join('<br>')}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">${g.entries.length} записей · ${g.entry_type}</div>
-    </div>`).join('');
+  CFG = await(await fetch('/api/hydra/config')).json();
+  const ver = await(await fetch('/api/hydra/version')).text();
+  document.getElementById('ver').textContent='v: '+ver.trim();
+  renderGroups();
 }
 
-async function loadExport(){
-  const dc=await(await fetch('/api/hydra/domain.conf')).text();
-  const il=await(await fetch('/api/hydra/ip.list')).text();
-  document.getElementById('dc-export').value=dc;
-  document.getElementById('il-export').value=il;
+function renderGroups(){
+  document.getElementById('dg-count').textContent = CFG.domain_groups.length;
+  document.getElementById('ig-count').textContent = CFG.ip_groups.length;
+  document.getElementById('domain-groups').innerHTML = CFG.domain_groups.map((g,i)=>groupCard(g,i,'domain')).join('');
+  document.getElementById('ip-groups').innerHTML = CFG.ip_groups.map((g,i)=>groupCard(g,i,'ip')).join('');
 }
 
-async function importFiles(){
-  const dc=document.getElementById('dc-text').value.trim();
-  const il=document.getElementById('il-text').value.trim();
-  if(!dc&&!il){sm('im','err','❌ Оба поля пусты');return}
-  const b={};if(dc)b.domain_conf=dc;if(il)b.ip_list=il;
+function groupCard(g, idx, type){
+  const key = `${type}-${idx}`;
+  const entries = g.entries.join('\n');
+  const preview = g.entries.slice(0,6).join('<br>') + (g.entries.length>6?`<br><span style="color:var(--border)">+${g.entries.length-6} ещё...</span>`:'');
+  return `<div class="group" id="card-${key}">
+    <div class="group-head">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="toggle ${g.enabled?'on':''}" onclick="toggleGroup('${type}',${idx})" title="${g.enabled?'Выкл':'Вкл'}"></button>
+        <span class="group-name">${g.name}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="badge ${pc(g.policy)}">${g.policy}</span>
+        <div class="group-actions">
+          <button class="icon-btn" onclick="openEdit('${type}',${idx})" title="Редактировать">✏️</button>
+          <button class="icon-btn" onclick="deleteGroup('${type}','${g.name}')" title="Удалить">🗑</button>
+        </div>
+      </div>
+    </div>
+    <div class="group-view" id="view-${key}">
+      <div class="entries-list">${preview}</div>
+      <div class="group-meta">${g.entries.length} записей · ${g.entry_type}</div>
+    </div>
+    <div class="group-edit" id="edit-${key}">
+      <div class="edit-label">Записи (по одной на строку):</div>
+      <textarea class="entries-ta" id="ta-${key}">${entries}</textarea>
+      <div class="add-quick">
+        <input class="quick-input" id="qi-${key}" placeholder="Быстро добавить: domain.com или geoip:ru" onkeydown="if(event.key==='Enter'){quickAdd('${type}',${idx});}">
+        <button class="btn btn-b" onclick="quickAdd('${type}',${idx})">+</button>
+      </div>
+      <div class="edit-footer">
+        <div class="edit-footer-left">
+          <button class="btn btn-g" onclick="saveGroup('${type}',${idx})">💾 Сохранить</button>
+          <button class="btn btn-ghost" onclick="closeEdit('${type}',${idx})">Отмена</button>
+        </div>
+        <span style="font-size:11px;color:var(--muted)" id="cnt-${key}">${g.entries.length} записей</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openEdit(type, idx){
+  const key=`${type}-${idx}`;
+  document.getElementById(`edit-${key}`).classList.add('open');
+  document.getElementById(`card-${key}`).classList.add('editing');
+  const ta = document.getElementById(`ta-${key}`);
+  ta.addEventListener('input', ()=>{
+    const cnt = ta.value.split('\n').filter(l=>l.trim()).length;
+    document.getElementById(`cnt-${key}`).textContent = cnt+' записей';
+  });
+}
+function closeEdit(type, idx){
+  const key=`${type}-${idx}`;
+  document.getElementById(`edit-${key}`).classList.remove('open');
+  document.getElementById(`card-${key}`).classList.remove('editing');
+}
+
+function quickAdd(type, idx){
+  const key=`${type}-${idx}`;
+  const qi = document.getElementById(`qi-${key}`);
+  const val = qi.value.trim();
+  if(!val) return;
+  const ta = document.getElementById(`ta-${key}`);
+  ta.value = ta.value.trimEnd() + (ta.value.trim()?'\n':'') + val;
+  qi.value='';
+  const cnt = ta.value.split('\n').filter(l=>l.trim()).length;
+  document.getElementById(`cnt-${key}`).textContent = cnt+' записей';
+}
+
+async function saveGroup(type, idx){
+  const key=`${type}-${idx}`;
+  const g = type==='domain' ? CFG.domain_groups[idx] : CFG.ip_groups[idx];
+  const ta = document.getElementById(`ta-${key}`);
+  const entries = ta.value.split('\n').map(l=>l.trim()).filter(l=>l);
+  const updated = {...g, entries};
+  const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
   try{
-    const r=await fetch('/api/hydra/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-    const j=await r.json();
-    sm('im','ok',`✅ Импортировано: ${j.domain_groups} доменных групп, ${j.ip_groups} IP групп · v:${j.version}`);
-    loadConfig();
-  }catch(e){sm('im','err','❌ '+e)}
+    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
+    sm('view-msg','ok',`✅ ${g.name} сохранён (${entries.length} записей)`);
+    await loadConfig();
+  }catch(e){sm('view-msg','err','❌ '+e)}
 }
 
-async function importAndPush(){
-  await importFiles();
-  setTimeout(pushAll,500);
+async function deleteGroup(type, name){
+  if(!confirm(`Удалить группу "${name}"?`)) return;
+  const url = type==='domain' ? `/api/hydra/domain-group/${name}` : `/api/hydra/ip-group/${name}`;
+  await fetch(url,{method:'DELETE'});
+  sm('view-msg','ok',`🗑 ${name} удалён`);
+  await loadConfig();
 }
 
+async function toggleGroup(type, idx){
+  const g = type==='domain' ? CFG.domain_groups[idx] : CFG.ip_groups[idx];
+  const updated = {...g, enabled: !g.enabled};
+  const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
+  await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
+  await loadConfig();
+}
+
+// ─── New group ─────────────────────────────────────────────────────────────
+function toggleNewGroup(type){
+  const id = type==='domain'?'new-domain-form':'new-ip-form';
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+async function saveNewGroup(type){
+  const pfx = type==='domain'?'nd':'ni';
+  const name = document.getElementById(`${pfx}-name`).value.trim();
+  const policy = document.getElementById(`${pfx}-policy`).value;
+  const entry_type = document.getElementById(`${pfx}-type`).value;
+  const raw = document.getElementById(`${pfx}-entries`).value;
+  if(!name){alert('Введи имя группы');return;}
+  // Support comma-separated on one line or line-by-line
+  const entries = raw.split(/[\n,]/).map(l=>l.trim()).filter(l=>l);
+  const g = {name, entries, policy, entry_type, enabled:true};
+  const url = type==='domain' ? '/api/hydra/domain-group' : '/api/hydra/ip-group';
+  await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(g)});
+  sm('view-msg','ok',`✅ Группа "${name}" создана`);
+  document.getElementById(`${pfx}-name`).value='';
+  document.getElementById(`${pfx}-entries`).value='';
+  toggleNewGroup(type);
+  await loadConfig();
+}
+
+// ─── Push all ──────────────────────────────────────────────────────────────
 async function pushAll(){
   const btn=document.getElementById('push-btn');
   const log=document.getElementById('push-log');
-  btn.disabled=true;
-  btn.innerHTML='<span class="spinner"></span>Обновляю...';
-  log.style.display='block';log.textContent='Запуск обновления на всех роутерах...\n';
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Обновляю...';
+  log.style.display='block'; log.textContent='Запуск...\n';
   try{
-    const r=await fetch('/api/hydra/push_all',{method:'POST'});
-    const j=await r.json();
+    const j=await(await fetch('/api/hydra/push_all',{method:'POST'})).json();
     log.textContent='';
-    for(const res of j.results){
-      const ok=res.status==='ok';
-      log.textContent+=`${ok?'✅':'❌'} ${res.router}: ${res.message}\n`;
-    }
-    log.textContent+=`\nВсего: ${j.ok} успешно, ${j.failed} ошибок`;
+    for(const r of j.results) log.textContent+=`${r.status==='ok'?'✅':'❌'} ${r.router}: ${r.message}\n`;
+    log.textContent+=`\nИтого: ${j.ok} успешно, ${j.failed} ошибок`;
   }catch(e){log.textContent='❌ '+e}
-  btn.disabled=false;btn.innerHTML='📡 Обновить все роутеры';
+  btn.disabled=false; btn.innerHTML='📡 Обновить все роутеры';
 }
 
-function sm(id,c,t){const e=document.getElementById(id);e.className='msg '+c;e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',6000)}
+// ─── Import ────────────────────────────────────────────────────────────────
+async function importFiles(){
+  const dc=document.getElementById('dc-text').value.trim();
+  const il=document.getElementById('il-text').value.trim();
+  if(!dc&&!il){sm('im','err','❌ Поля пусты');return;}
+  const b={}; if(dc)b.domain_conf=dc; if(il)b.ip_list=il;
+  try{
+    const j=await(await fetch('/api/hydra/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})).json();
+    sm('im','ok',`✅ ${j.domain_groups} доменных групп, ${j.ip_groups} IP групп · v:${j.version}`);
+    await loadConfig();
+  }catch(e){sm('im','err','❌ '+e)}
+}
+async function importAndPush(){ await importFiles(); setTimeout(pushAll,300); }
+
+async function loadExport(){
+  document.getElementById('dc-export').value=await(await fetch('/api/hydra/domain.conf')).text();
+  document.getElementById('il-export').value=await(await fetch('/api/hydra/ip.list')).text();
+}
+
+function sm(id,c,t){const e=document.getElementById(id);e.className='msg '+c;e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',5000)}
 
 loadConfig();
 </script></body></html>
