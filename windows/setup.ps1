@@ -15,18 +15,18 @@ $ss = $ss -replace 'SERVER_IP', $ServerIP
 $ss = $ss -replace '"ROUTER"', "`"$RouterName`""
 Set-Content "$dir\speedtest_client.ps1" -Value $ss
 
-$ps = "powershell.exe"
-$script = "`"$dir\speedtest_client.ps1`""
+$script = "$dir\speedtest_client.ps1"
+$ps     = "powershell.exe"
+$args_sites = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" -Mode sites"
+$args_speed = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" -Mode speed"
 
-# Task 1: check sites every 30 minutes
-$action1  = New-ScheduledTaskAction -Execute $ps -Argument "-ExecutionPolicy Bypass -File $script -Mode sites"
-$trigger1 = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes 30) -Once -At (Get-Date)
-Register-ScheduledTask -TaskName "Keenetic-CheckSites" -Action $action1 -Trigger $trigger1 -Force | Out-Null
+# Delete old tasks silently (ignore errors if they don't exist or need admin)
+schtasks /delete /tn "Keenetic-CheckSites" /f 2>$null | Out-Null
+schtasks /delete /tn "Keenetic-Speedtest"  /f 2>$null | Out-Null
 
-# Task 2: run speedtest every 4 hours
-$action2  = New-ScheduledTaskAction -Execute $ps -Argument "-ExecutionPolicy Bypass -File $script -Mode speed"
-$trigger2 = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Hours 4) -Once -At (Get-Date)
-Register-ScheduledTask -TaskName "Keenetic-Speedtest" -Action $action2 -Trigger $trigger2 -Force | Out-Null
+# Create tasks for current user — no admin required
+schtasks /create /tn "Keenetic-CheckSites" /tr "$ps $args_sites" /sc minute /mo 30 /f | Out-Null
+schtasks /create /tn "Keenetic-Speedtest"  /tr "$ps $args_speed" /sc hourly /mo 4  /f | Out-Null
 
 Write-Host "OK: $RouterName -> $ServerIP (LAN: $RouterLanIP)"
 Write-Host "Sites check: every 30 min  (Keenetic-CheckSites)"
