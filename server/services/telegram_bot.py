@@ -95,16 +95,20 @@ async def _handle(text):
         import asyncio
 
         if arg1 == "sites":
-            # Check sites from each router via SSH
+            # HydraRoute Neo works via DNS interception for LAN clients.
+            # From router we check: neo status + VPN tunnel state + config presence.
             from ..main import routers as _all_r
-            SITES = ["www.canva.com", "www.instagram.com", "www.netflix.com", "www.youtube.com"]
-            checks = "; ".join(
-                f'_ip=$(nslookup {s} 2>/dev/null | awk \'/Address/{{print $NF}}\' | grep -E "^[0-9]{{1,3}}\\." | head -1); '
-                f'_if=$(ip route get "$_ip" 2>/dev/null | grep -oE "dev [^ ]+" | awk \'{{print $2}}\'); '
-                f'echo "$_if" | grep -qE "^(nwg|tun|wg)" && echo "{s}=VPN($_if)" || echo "{s}=DIRECT($_if)"'
-                for s in SITES
+            checks = (
+                'echo "=NEO="; neo status 2>/dev/null | head -3; '
+                'echo "=VPN="; '
+                'for i in nwg0 nwg1 nwg2 nwg3; do '
+                '  ip link show $i 2>/dev/null | grep -q "UP" && echo "$i=UP" || true; '
+                'done; '
+                'echo "=CONF="; '
+                '[ -f /opt/etc/HydraRoute/domain.conf ] && echo "domain.conf: $(wc -l < /opt/etc/HydraRoute/domain.conf) строк" || echo "domain.conf: не найден"; '
+                '[ -f /opt/etc/HydraRoute/ip.list ] && echo "ip.list: $(wc -l < /opt/etc/HydraRoute/ip.list) строк" || echo "ip.list: не найден"'
             )
-            lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
+            lines = ["🌐 <b>Статус HydraRoute Neo на роутерах</b>\n"]
             for rname, rcfg in list(_all_r.items()):
                 rip = rcfg.get("ip","") or rcfg.get("wan_ip","")
                 if not rip: lines.append(f"⏭ <b>{rname}</b>: нет IP"); continue
@@ -114,15 +118,18 @@ async def _handle(text):
                 if not r["ok"]:
                     lines.append(f"⚠️ <b>{rname}</b>: нет SSH")
                     continue
-                site_lines = []
-                for line in r["output"].splitlines():
-                    line = line.strip()
-                    for s in SITES:
-                        if line.startswith(s+"="):
-                            val = line.split("=",1)[1]
-                            ok = val.startswith("VPN")
-                            site_lines.append(f"  {'✅' if ok else '⚠️'} {s} <code>{val}</code>")
-                lines.append(f"📡 <b>{rname}</b>\n" + "\n".join(site_lines))
+                raw = r["output"].strip()
+                neo_ok = "running" in raw.lower() or "alive" in raw.lower()
+                vpn_ups = [l.replace("=UP","") for l in raw.splitlines() if l.strip().endswith("=UP")]
+                neo_icon = "✅" if neo_ok else "❌"
+                vpn_icon = "✅" if vpn_ups else "❌"
+                vpn_str = ", ".join(vpn_ups) if vpn_ups else "нет активных"
+                lines.append(
+                    f"📡 <b>{rname}</b>\n"
+                    f"  {neo_icon} Neo: {'работает' if neo_ok else 'не запущен'}\n"
+                    f"  {vpn_icon} VPN туннели: {vpn_str}\n"
+                    f"<pre>{raw[:400]}</pre>"
+                )
             return "\n\n".join(lines)
 
         # Test Telegram + Email

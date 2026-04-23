@@ -46,22 +46,21 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
         if not ip: continue
         user = rcfg.get("user") or config.SSH_USER
         password = rcfg.get("password") or config.SSH_PASS
-        # Check routing decision for each site: if route goes via nwg*/tun*/wg* = VPN OK
-        site_checks = "; ".join(
-            f'_ip=$(nslookup {s} 2>/dev/null | awk \'/Address/{{print $NF}}\' | grep -E "^[0-9]{{1,3}}\\." | head -1); '
-            f'_if=$(ip route get "$_ip" 2>/dev/null | grep -oE "dev [^ ]+" | awk \'{{print $2}}\'); '
-            f'echo "$_if" | grep -qE "^(nwg|tun|wg)" && echo "{s}=VPN($_if)" || echo "{s}=DIRECT($_if)"'
-            for s in sites
+        # HydraRoute Neo works via DNS interception for LAN clients.
+        # From router itself we check: neo status + active VPN tunnels
+        checks = (
+            'echo "=NEO="; neo status 2>/dev/null | head -3; '
+            'echo "=VPN="; '
+            'for i in nwg0 nwg1 nwg2 nwg3; do '
+            '  ip link show $i 2>/dev/null | grep -q "UP" && echo "$i=UP" || true; '
+            'done; '
+            'echo "=CONF="; '
+            '[ -f /opt/etc/HydraRoute/domain.conf ] && echo "domain.conf: $(wc -l < /opt/etc/HydraRoute/domain.conf) строк" || echo "domain.conf: не найден"; '
+            '[ -f /opt/etc/HydraRoute/ip.list ] && echo "ip.list: $(wc -l < /opt/etc/HydraRoute/ip.list) строк" || echo "ip.list: не найден"'
         )
-        checks = site_checks
         r = await ssh_exec_verbose(ip, checks, user=user, password=password, timeout=60)
         site_results = {}
-        for line in r["output"].splitlines():
-            line = line.strip()
-            for s in sites:
-                if line.startswith(s+"="):
-                    val = line.split("=",1)[1]
-                    site_results[s] = val.startswith("VPN")
+        router_results[-1]["raw"] = r["output"].strip()[:600]
         router_results.append({"router": name, "ok": r["ok"], "sites": site_results, "error": "" if r["ok"] else r["output"][:100]})
     # Send summary to Telegram
     lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
@@ -69,8 +68,12 @@ async def test_sites(request: Request, x_admin_password: str = Header("")):
         if not rr["ok"]:
             lines.append(f"⚠️ <b>{rr['router']}</b>: нет SSH\n{rr['error']}")
             continue
-        site_line = "\n".join(f"  {'✅' if v else '⚠️'} {k}" for k,v in rr["sites"].items())
-        lines.append(f"📡 <b>{rr['router']}</b>\n{site_line}")
+        raw = rr.get("raw","")
+        neo_ok = "running" in raw.lower() or "alive" in raw.lower()
+        vpn_ups = [l.replace("=UP","") for l in raw.splitlines() if l.strip().endswith("=UP")]
+        neo_line = "✅ Neo running" if neo_ok else "❌ Neo не запущен"
+        vpn_line = f"✅ VPN: {', '.join(vpn_ups)}" if vpn_ups else "❌ VPN интерфейсы не найдены"
+        lines.append(f"📡 <b>{rr['router']}</b>\n  {neo_line}\n  {vpn_line}\n<pre>{raw}</pre>")
     await send_telegram("\n\n".join(lines))
     return {"results": router_results}
 
