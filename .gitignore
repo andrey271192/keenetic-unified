@@ -8,3 +8,4 @@ server/data/
 
 # Env files (keep example committed)
 server/.env
+openai-gpt-image-mcp/
