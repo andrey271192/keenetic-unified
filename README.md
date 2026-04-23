@@ -36,11 +36,34 @@ export ROUTER_NAME="имя" SERVER_URL="http://IP:8000" \
 
 ### 3. Windows PC
 
+Открой PowerShell (без прав администратора) и выполни:
+
 ```powershell
-.\setup.ps1 -ServerIP "IP" -RouterName "имя" -RouterLanIP "192.168.1.1"
+# Скачать скрипты
+$url = "https://raw.githubusercontent.com/andrey271192/Keenetic-Unified/main/windows"
+Invoke-WebRequest "$url/setup.ps1"            -OutFile "$env:TEMP\setup.ps1"
+Invoke-WebRequest "$url/speedtest_client.ps1" -OutFile "$env:TEMP\speedtest_client.ps1"
+
+# Установить (заменить ИМЯ_РОУТЕРА на уникальное имя объекта, например "office1")
+cd $env:TEMP
+.\setup.ps1 -ServerIP "IP_СЕРВЕРА" -RouterName "ИМЯ_РОУТЕРА" -RouterLanIP "192.168.88.1"
 ```
 
-Запускает мониторинг скорости (VPN + прямой RU) и доступности сайтов.
+Установить speedtest CLI (один раз):
+```powershell
+winget install Ookla.Speedtest
+```
+
+Проверить что всё работает:
+```powershell
+& "$env:LOCALAPPDATA\keenetic-unified\speedtest_client.ps1" -Mode sites
+```
+
+Создаётся два расписания:
+- **Keenetic-CheckSites** — проверка сайтов (canva, instagram, netflix, youtube) каждые **30 минут**
+- **Keenetic-Speedtest** — замер скорости VPN + прямой RU каждые **4 часа**
+
+> Каждый ПК нужно добавлять с уникальным `-RouterName` — тогда на дашборде будет отдельная строка для каждого объекта.
 
 ---
 
@@ -172,8 +195,8 @@ router/
   hydra_update.sh      — обновление HydraRoute конфига с сервера
 
 windows/
-  setup.ps1            — установка клиента на Windows
-  speedtest_client.ps1 — замер скорости VPN + прямой RU
+  setup.ps1            — установка клиента на Windows (создаёт 2 задания в планировщике)
+  speedtest_client.ps1 — проверка сайтов (-Mode sites) + замер скорости (-Mode speed)
 ```
 
 ---
