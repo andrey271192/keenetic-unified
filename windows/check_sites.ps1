@@ -1,13 +1,15 @@
-$SERVER          = "http://212.118.42.105:8000"
-$ROUTER_NAME     = "Andrey"
-$ROUTER_SSH_HOST = "192.168.88.1:22"
+$SERVER          = "http://SERVER_IP:8000"
+$ROUTER_NAME     = "ROUTER"
+$ROUTER_SSH_HOST = "ROUTER_LAN_IP:22"
 $ROUTER_SSH_USER = "root"
 $ROUTER_SSH_PASS = "keenetic"
+
 $sites = @{
     "YouTube"  = "https://www.youtube.com"
     "Netflix"  = "https://www.netflix.com"
     "Telegram" = "https://web.telegram.org"
 }
+
 $results = @{}
 foreach ($n in $sites.Keys) {
     try {
@@ -17,6 +19,7 @@ foreach ($n in $sites.Keys) {
         $results[$n] = $false
     }
 }
+
 $body = @{ router = $ROUTER_NAME; sites = $results } | ConvertTo-Json
 try {
     $resp = Invoke-RestMethod -Uri "$SERVER/api/push_sites" -Method POST -Body $body -ContentType "application/json"

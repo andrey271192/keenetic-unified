@@ -1,5 +1,6 @@
-$SERVER      = "http://212.118.42.105:8000"
-$ROUTER_NAME = "Andrey"
+$SERVER      = "http://SERVER_IP:8000"
+$ROUTER_NAME = "ROUTER"
+
 function Run-ST {
     try {
         $o = & speedtest --format=json 2>$null | ConvertFrom-Json
@@ -10,6 +11,7 @@ function Run-ST {
         }
     } catch { return @{ down=0; up=0; ping=0 } }
 }
+
 $vpn = Run-ST
 $body = @{
     router   = $ROUTER_NAME
@@ -17,5 +19,6 @@ $body = @{
     ru_down  = 0; ru_up = 0
     ping     = $vpn.ping; ru_ping = 0
 } | ConvertTo-Json
+
 try { Invoke-RestMethod -Uri "$SERVER/api/push_speed" -Method POST -Body $body -ContentType "application/json" }
-catch { Write-Host "Server unreachable" }
+catch { Write-Host "Server unreachable: $_" }
