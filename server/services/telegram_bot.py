@@ -91,10 +91,39 @@ async def _handle(text):
 
     elif cmd == "/test":
         from .notifier import send_telegram, _email
+        from .ssh_client import ssh_exec_verbose
         import asyncio
-        # Test Telegram
+
+        if arg1 == "sites":
+            # Check sites from each router via SSH
+            from ..main import routers as _all_r
+            SITES = ["www.canva.com", "www.instagram.com", "www.netflix.com", "www.youtube.com"]
+            checks = "; ".join(
+                f'curl -sf --connect-only --connect-timeout 5 --max-time 8 https://{s} 2>/dev/null && echo "{s}=OK" || echo "{s}=FAIL"'
+                for s in SITES
+            )
+            lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
+            for rname, rcfg in list(_all_r.items()):
+                rip = rcfg.get("ip","") or rcfg.get("wan_ip","")
+                if not rip: lines.append(f"⏭ <b>{rname}</b>: нет IP"); continue
+                ru = rcfg.get("user") or config.SSH_USER
+                rp = rcfg.get("password") or config.SSH_PASS
+                r = await ssh_exec_verbose(rip, checks, user=ru, password=rp, timeout=60)
+                if not r["ok"]:
+                    lines.append(f"⚠️ <b>{rname}</b>: нет SSH")
+                    continue
+                site_lines = []
+                for line in r["output"].splitlines():
+                    line = line.strip()
+                    for s in SITES:
+                        if line.startswith(s+"="):
+                            ok = line.split("=",1)[1] == "OK"
+                            site_lines.append(f"  {'✅' if ok else '❌'} {s}")
+                lines.append(f"📡 <b>{rname}</b>\n" + "\n".join(site_lines))
+            return "\n\n".join(lines)
+
+        # Test Telegram + Email
         await send_telegram("🔔 <b>Тест уведомлений</b>\n✅ Telegram работает!\n\nПроверяю email...")
-        # Test Email
         ok_email = False
         try:
             await asyncio.to_thread(_email,
@@ -106,7 +135,7 @@ async def _handle(text):
             ok_email = False
             logger.error(f"Test email: {e}")
         email_status = f"✅ Email отправлен на {config.SMTP_TO}" if ok_email else f"❌ Email ошибка — проверь SMTP настройки в .env"
-        return f"🔔 <b>Результат проверки</b>\n\n✅ Telegram — работает\n{email_status}"
+        return f"🔔 <b>Результат проверки</b>\n\n✅ Telegram — работает\n{email_status}\n\n💡 Для проверки сайтов: /test sites"
 
     elif cmd == "/status":
         R = load_json(config.ROUTERS_FILE, {}); W = load_json(config.WATCHDOG_FILE, {})

@@ -60,8 +60,12 @@ textarea:focus{border-color:var(--accent)}
   <div class="section">
     <h2>🔔 Проверка уведомлений</h2>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Отправит тестовое сообщение в Telegram и на email — убедись что оба канала работают</p>
-    <button class="btn btn-b" onclick="testNotify()" id="test-btn">📨 Отправить тест</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="btn btn-b" onclick="testNotify()" id="test-btn">📨 Telegram + Email</button>
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7" onclick="testSites()" id="sites-btn">🌐 Проверить сайты</button>
+    </div>
     <div id="test-msg" class="msg"></div>
+    <div id="sites-log" style="display:none;background:#111;border-radius:10px;padding:12px;font-size:11px;font-family:monospace;max-height:200px;overflow-y:auto;margin-top:8px"></div>
   </div>
 
   <div class="section"><h2>➕ Добавить роутер</h2>
@@ -169,6 +173,28 @@ async function saveMap(){
     await fetch(`/api/routers/${n}`,{method:'POST',headers:hdr(),body:JSON.stringify(all[n])});ok++;
   }
   sm('mm','ok',`✅ Сохранено: ${ok}`);loadR();
+}
+
+async function testSites(){
+  const btn=document.getElementById('sites-btn');
+  const log=document.getElementById('sites-log');
+  btn.disabled=true; btn.textContent='⏳ Проверяю...';
+  log.style.display='block'; log.innerHTML='<span style="color:#86868b">Проверяю сайты с роутеров (TCP)...</span>\n';
+  const sites=['www.canva.com','www.instagram.com','www.netflix.com','www.youtube.com'];
+  try{
+    const j=await(await fetch('/api/test_sites',{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Password':getPass()},body:JSON.stringify({sites})})).json();
+    log.innerHTML='';
+    for(const rr of j.results){
+      if(!rr.ok){ log.innerHTML+=`<div style="color:#ff9f0a;margin-bottom:6px">⚠️ <b>${rr.router}</b>: нет SSH</div>`; continue; }
+      let row=`<div style="margin-bottom:8px"><b style="color:#f5f5f7">${rr.router}</b>\n`;
+      for(const[site,ok] of Object.entries(rr.sites||{})){
+        row+=`  <span style="color:${ok?'#30d158':'#ff453a'}">${ok?'✅':'❌'} ${site}</span>\n`;
+      }
+      log.innerHTML+=row+'</div>';
+    }
+    log.innerHTML+=`<span style="color:#86868b">Результат отправлен в Telegram</span>`;
+  }catch(e){ log.textContent='❌ '+e; }
+  btn.disabled=false; btn.textContent='🌐 Проверить сайты';
 }
 
 async function testNotify(){

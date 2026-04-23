@@ -31,6 +31,45 @@ async def test_notify(x_admin_password: str = Header("")):
     except Exception as e:
         email_ok = False; email_err = str(e)
     return {"telegram": True, "email": email_ok, "email_error": email_err, "email_to": config.SMTP_TO}
+
+@router.post("/test_sites")
+async def test_sites(request: Request, x_admin_password: str = Header("")):
+    _chk(x_admin_password)
+    from ..services.ssh_client import ssh_exec_verbose
+    from ..services.notifier import send_telegram
+    b = await request.json()
+    sites = b.get("sites", ["www.canva.com", "www.instagram.com", "www.netflix.com", "www.youtube.com"])
+    R, _, _, _, _ = _s()
+    router_results = []
+    for name, rcfg in list(R.items()):
+        ip = rcfg.get("ip","") or rcfg.get("wan_ip","")
+        if not ip: continue
+        user = rcfg.get("user") or config.SSH_USER
+        password = rcfg.get("password") or config.SSH_PASS
+        # Build one-liner: check each site via TCP and report exit codes
+        checks = "; ".join(
+            f'curl -sf --connect-only --connect-timeout 5 --max-time 8 https://{s} 2>/dev/null && echo "{s}=OK" || echo "{s}=FAIL"'
+            for s in sites
+        )
+        r = await ssh_exec_verbose(ip, checks, user=user, password=password, timeout=60)
+        site_results = {}
+        for line in r["output"].splitlines():
+            line = line.strip()
+            for s in sites:
+                if line.startswith(s+"="):
+                    site_results[s] = line.split("=",1)[1] == "OK"
+        router_results.append({"router": name, "ok": r["ok"], "sites": site_results, "error": "" if r["ok"] else r["output"][:100]})
+    # Send summary to Telegram
+    lines = ["🌐 <b>Проверка сайтов с роутеров</b>\n"]
+    for rr in router_results:
+        if not rr["ok"]:
+            lines.append(f"⚠️ <b>{rr['router']}</b>: нет SSH\n{rr['error']}")
+            continue
+        site_line = "  ".join(f"{'✅' if v else '❌'} {k}" for k,v in rr["sites"].items())
+        lines.append(f"📡 <b>{rr['router']}</b>\n{site_line}")
+    await send_telegram("\n\n".join(lines))
+    return {"results": router_results}
+
 def _s():
     from ..main import routers, sites_status, watchdog_status, speed_history, restart_queue
     return routers, sites_status, watchdog_status, speed_history, restart_queue
