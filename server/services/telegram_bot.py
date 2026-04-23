@@ -75,7 +75,8 @@ async def _handle(text):
             "/ping &lt;имя&gt; — пинг роутера\n"
             "/uptime &lt;имя&gt; — аптайм\n"
             "/interfaces &lt;имя&gt; — сетевые интерфейсы\n"
-            "/update &lt;имя&gt; — обновить домены\n"
+            "/update &lt;имя&gt; — обновить домены на роутере\n"
+            "/update all — обновить домены на всех роутерах\n"
             "/domains — статус доменов\n\n"
             "⚙️ <b>Настройка:</b>\n"
             "/setip &lt;имя&gt; &lt;IP&gt; — задать IP\n"
@@ -238,7 +239,19 @@ async def _handle(text):
             f"Version: {get_config_version(cfg)}")
 
     elif cmd == "/update":
-        if not arg1: return "❓ /update имя — обновить домены на роутере"
+        if not arg1: return "❓ /update имя|all — обновить домены"
+        if arg1.lower() == "all":
+            R = load_json(config.ROUTERS_FILE, {})
+            if not R: return "❌ Нет роутеров"
+            lines = ["📋 <b>Обновление доменов на всех роутерах</b>\n"]
+            for name, cfg in R.items():
+                ip = cfg.get("ip","") or cfg.get("wan_ip","")
+                if not ip: lines.append(f"⏭ <b>{name}</b>: нет IP"); continue
+                u = cfg.get("user") or config.SSH_USER
+                p = cfg.get("password") or config.SSH_PASS
+                result = await ssh_exec(ip, "/opt/bin/hydra_update.sh", user=u, password=p, timeout=30)
+                lines.append(f"✅ <b>{name}</b>: {result.strip()[:80] or 'ok'}")
+            return "\n".join(lines)
         ip, dn, _, u, p = _get_router_ip(arg1)
         if ip is None: return f"❌ '{arg1}' не найден\n\n" + _router_list()
         if not ip: return f"❌ '{arg1}' — нет IP. Задай через /admin"

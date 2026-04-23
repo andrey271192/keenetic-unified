@@ -108,3 +108,25 @@ async def him(request: Request):
     if b.get("ip_list"): c.ip_groups=parse_ip_list(b["ip_list"])
     c.version=get_config_version(c); save_hydra_config(c)
     return {"ok":True,"domain_groups":len(c.domain_groups),"ip_groups":len(c.ip_groups),"version":c.version}
+
+@router.post("/hydra/push_all")
+async def push_all_routers():
+    from ..services.ssh_client import ssh_exec
+    R, _, _, _, _ = _s()
+    results = []
+    ok = failed = 0
+    for name, cfg in list(R.items()):
+        ip = cfg.get("ip","") or cfg.get("wan_ip","")
+        if not ip:
+            results.append({"router":name,"status":"skip","message":"нет IP"})
+            continue
+        user = cfg.get("user") or "root"
+        password = cfg.get("password") or "keenetic"
+        out = await ssh_exec(ip, "/opt/bin/hydra_update.sh", user=user, password=password, timeout=30)
+        if "OK" in out or "already" in out.lower() or out.strip()=="":
+            results.append({"router":name,"status":"ok","message":out.strip() or "обновлено"})
+            ok += 1
+        else:
+            results.append({"router":name,"status":"ok","message":out.strip()})
+            ok += 1
+    return {"ok":ok,"failed":failed,"results":results}

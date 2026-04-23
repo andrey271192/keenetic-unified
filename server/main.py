@@ -47,3 +47,6 @@ async def admin_page(): return (TPL/"admin.html").read_text(encoding="utf-8")
 
 @app.get("/stats/{name}", response_class=HTMLResponse)
 async def stats_page(name: str): return (TPL/"stats.html").read_text(encoding="utf-8")
+
+@app.get("/domains", response_class=HTMLResponse)
+async def domains_page(): return (TPL/"domains.html").read_text(encoding="utf-8")
