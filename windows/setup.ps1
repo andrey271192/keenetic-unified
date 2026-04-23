@@ -21,12 +21,12 @@ $script = "`"$dir\speedtest_client.ps1`""
 # Task 1: check sites every 30 minutes
 $action1  = New-ScheduledTaskAction -Execute $ps -Argument "-ExecutionPolicy Bypass -File $script -Mode sites"
 $trigger1 = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes 30) -Once -At (Get-Date)
-Register-ScheduledTask -TaskName "Keenetic-CheckSites" -Action $action1 -Trigger $trigger1 -RunLevel Highest -Force | Out-Null
+Register-ScheduledTask -TaskName "Keenetic-CheckSites" -Action $action1 -Trigger $trigger1 -Force | Out-Null
 
 # Task 2: run speedtest every 4 hours
 $action2  = New-ScheduledTaskAction -Execute $ps -Argument "-ExecutionPolicy Bypass -File $script -Mode speed"
 $trigger2 = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Hours 4) -Once -At (Get-Date)
-Register-ScheduledTask -TaskName "Keenetic-Speedtest" -Action $action2 -Trigger $trigger2 -RunLevel Highest -Force | Out-Null
+Register-ScheduledTask -TaskName "Keenetic-Speedtest" -Action $action2 -Trigger $trigger2 -Force | Out-Null
 
 Write-Host "OK: $RouterName -> $ServerIP (LAN: $RouterLanIP)"
 Write-Host "Sites check: every 30 min  (Keenetic-CheckSites)"
