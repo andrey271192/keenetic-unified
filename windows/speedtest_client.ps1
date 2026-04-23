@@ -33,28 +33,30 @@ function Run-ST {
 }
 
 function Run-RU {
-    # RU ping (ya.ru)
+    # RU ping — прямой пинг до российского сервера (не идёт через VPN)
     $ru_ping = 0
     try {
         $p = Test-Connection -ComputerName "ya.ru" -Count 3 -ErrorAction Stop
         $ru_ping = [math]::Round(($p | Measure-Object -Property ResponseTime -Average).Average, 0)
     } catch { $ru_ping = 0 }
 
-    # RU download — download 10MB from Selectel, measure bytes actually received
+    # RU download — WebClient качает с российского CDN напрямую (минуя VPN)
+    # Российские IP не маршрутизируются через VPN в HydraRoute
     $ru_down = 0
-    $urls = @(
-        "https://speedtest.selectel.ru/10mb",
-        "http://speedtest.selectel.ru/10mb",
-        "http://ipv4.download.thinkbroadband.com/10MB.zip"
+    $test_urls = @(
+        "http://mirror.yandex.ru/debian/ls-lR.gz",   # Yandex mirror ~20MB
+        "http://lg.fiord.ru/10mb.test",               # Fiord RU 10MB
+        "http://speedtest.ucom.ru/10mb.bin"           # UCOM 10MB
     )
-    foreach ($url in $urls) {
+    foreach ($url in $test_urls) {
         try {
+            $wc = New-Object System.Net.WebClient
+            $wc.Headers.Add("User-Agent", "Mozilla/5.0")
             $start = Get-Date
-            $resp = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+            $data = $wc.DownloadData($url)
             $elapsed = [math]::Max(((Get-Date) - $start).TotalSeconds, 0.1)
-            $bytes = if ($resp.Content -is [byte[]]) { $resp.Content.Length } else { [System.Text.Encoding]::UTF8.GetByteCount($resp.Content) }
-            if ($bytes -gt 0) {
-                $ru_down = [math]::Round($bytes * 8 / 1e6 / $elapsed, 1)
+            if ($data.Length -gt 100000) {
+                $ru_down = [math]::Round($data.Length * 8 / 1e6 / $elapsed, 1)
                 break
             }
         } catch { continue }
