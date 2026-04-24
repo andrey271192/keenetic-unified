@@ -361,6 +361,13 @@ header.header-hidden { transform: translateY(-100%); }
   font-family:'Onest',sans-serif;cursor:pointer;transition:all 0.2s;
 }
 .fv-ext-btn:hover{background:rgba(255,255,255,0.25);}
+.fv-del-btn{
+  background:rgba(239,68,68,0.25);border:none;color:white;
+  padding:7px 14px;border-radius:20px;font-size:0.8rem;
+  font-family:'Onest',sans-serif;cursor:pointer;transition:all 0.2s;
+  flex-shrink:0;
+}
+.fv-del-btn:hover{background:rgba(239,68,68,0.5);}
 .fv-close{
   background:rgba(255,255,255,0.12);border:none;color:white;
   width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:700;
@@ -1074,6 +1081,7 @@ header.header-hidden { transform: translateY(-100%); }
     <span>📄</span>
     <span class="fv-filename" id="fvFilename">Файл</span>
     <a id="fvExtLink" href="#" target="_blank" class="fv-ext-btn">🔗 Открыть в Drive</a>
+    <button class="fv-del-btn" id="fvDelBtn" onclick="fvDeleteCurrent()" title="Удалить файл">🗑️ Удалить</button>
     <button class="fv-close" onclick="closeFV()">✕</button>
   </div>
   <div class="fv-body" id="fvBody"></div>
@@ -1788,6 +1796,10 @@ function viewFile(fileId,mimeType,fileName){
     ext.removeAttribute('download');
   }
 
+  // allow delete from viewer
+  window._fvFileId = fileId;
+  window._fvFileName = fileName;
+
   const body=document.getElementById('fvBody');
   body.innerHTML='';
 
@@ -1814,9 +1826,20 @@ function viewFile(fileId,mimeType,fileName){
   document.getElementById('fvModal').classList.add('open');
 }
 
+async function fvDeleteCurrent(){
+  const fileId = window._fvFileId;
+  const fileName = window._fvFileName || 'файл';
+  if(!fileId){toast('❌ Не выбран файл');return;}
+  if(!checkPinAuth()){showPinModal(()=>fvDeleteCurrent());return;}
+  closeFV();
+  await deleteFile(fileId, fileName);
+}
+
 function closeFV(){
   document.getElementById('fvModal').classList.remove('open');
   document.getElementById('fvBody').innerHTML='';
+  window._fvFileId = null;
+  window._fvFileName = null;
 }
 
 document.getElementById('fvModal').addEventListener('click',e=>{
