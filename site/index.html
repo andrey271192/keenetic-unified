@@ -515,9 +515,24 @@ header{
 @keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 @media(max-width:768px){
-  .header-inner{padding:12px 16px;}
-  .main-wrap{padding:12px 12px 24px;}
-  .tab-bar-inner{padding:0 4px;}
+  /* Телефонный браузер: вырез экрана, нижняя панель, без «ломания» тапа */
+  html{-webkit-text-size-adjust:100%;}
+  body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  .header-inner{
+    padding:12px 16px;
+    padding-left:max(16px, env(safe-area-inset-left, 0px));
+    padding-right:max(16px, env(safe-area-inset-right, 0px));
+    padding-top:max(12px, env(safe-area-inset-top, 0px));
+  }
+  .main-wrap{
+    padding:12px 12px 24px;
+    padding-bottom:max(24px, env(safe-area-inset-bottom, 0px));
+  }
+  .tab-bar-inner{
+    padding:0 4px;
+    padding-left:max(4px, env(safe-area-inset-left, 0px));
+    padding-right:max(4px, env(safe-area-inset-right, 0px));
+  }
   .tab-btn{padding:10px 6px;font-size:0.7rem;gap:3px;min-height:42px;flex:1;justify-content:center;}
   /* Скрываем плавающие элементы на мобильном — они ломают клики */
   .orion-container{display:none!important;}
