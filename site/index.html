@@ -1569,8 +1569,9 @@ document.getElementById('tgForm').onsubmit=async(e)=>{
     }else if(text==='file_too_large'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Файл слишком большой</span>';}
     else if(text==='invalid_data'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Проверьте телефон (мин. 10 цифр)</span>';}
     else if(text==='telegram_error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Telegram отклонил отправку. Попробуйте без вложения или позже.</span>';}
+    else if(text==='telegram_http'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Сервер не получил ответ 200 от Telegram (блокировка сети или API). Обратитесь к администратору: исходящий HTTPS к api.telegram.org.</span>';}
     else if(text==='save_error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Не удалось сохранить тикет на сервере (права на файл). Обратитесь к администратору.</span>';}
-    else if(text==='curl_error'||text==='error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Нет связи с Telegram. Попробуйте позже.</span>';}
+    else if(text==='curl_error'||text==='error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Нет связи с Telegram (cURL). Часто: блокировка хостингом, SSL или DNS. Админ: проверьте curl к api.telegram.org с сервера.</span>';}
     else if(!response.ok){statusDiv.innerHTML='<span style="color:#dc2626;">❌ HTTP '+response.status+': '+String(text).replace(/</g,'&lt;').slice(0,180)+'</span>';}
     else{statusDiv.innerHTML='<span style="color:#dc2626;">❌ Ответ сервера: '+String(text).replace(/</g,'&lt;').slice(0,200)+'</span>';}
   }catch(err){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Ошибка сети. Попробуйте позже.</span>';}
