@@ -31,7 +31,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Ne
 .events-wrap{background:var(--card);border-radius:16px;max-height:340px;overflow-y:auto}.ev{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;display:flex;gap:12px;font-weight:500}.ev:last-child{border:none}.ev .ts{color:var(--muted);min-width:110px;flex-shrink:0}
 #refresh{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;border:none;padding:10px 22px;border-radius:100px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(10,132,255,.3);font-family:inherit}#refresh:hover{transform:scale(1.05)}
 .upd{font-size:10px;color:var(--muted);text-align:right;margin-top:12px}
-@media(max-width:720px){.container{padding:12px}.grid{grid-template-columns:1fr}.hdr-nav{display:none}}
+.dash-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.dash-tools input[type=search]{flex:1;min-width:200px;max-width:420px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none}
+.dash-tools input[type=search]:focus{border-color:var(--accent)}
+.dash-tools select{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer}
+.dash-tools .hint{font-size:11px;color:var(--muted);white-space:nowrap}
+@media(max-width:720px){.container{padding:12px}.grid{grid-template-columns:1fr}.hdr-nav{display:none}.dash-tools{flex-direction:column;align-items:stretch}.dash-tools .hint{white-space:normal}}
 </style></head><body>
 
 <!-- AUTH OVERLAY -->
@@ -62,7 +67,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Ne
   </div>
 </div>
 
-<div class="container"><div class="grid" id="grid"></div><div class="sec-title" id="ev-t" style="display:none">Последние события</div><div id="ev"></div><div class="upd" id="upd"></div></div>
+<div class="container">
+  <div class="dash-tools">
+    <input type="search" id="dash-q" placeholder="Поиск: имя, IP, веб-ссылка…" autocomplete="off">
+    <select id="dash-sort" title="Порядок карточек">
+      <option value="problems">Сначала проблемы</option>
+      <option value="offline_first">Офлайн сверху</option>
+      <option value="online_first">Онлайн сверху</option>
+      <option value="name">Имя А → Я</option>
+      <option value="name_desc">Имя Я → А</option>
+    </select>
+    <span class="hint" id="dash-hint"></span>
+  </div>
+  <div class="grid" id="grid"></div><div class="sec-title" id="ev-t" style="display:none">Последние события</div><div id="ev"></div><div class="upd" id="upd"></div></div>
 <button id="refresh" onclick="load()">↻</button>
 
 <script>
@@ -87,12 +104,35 @@ async function _doLogin(){
 function logout(){ sessionStorage.removeItem('ku_pass'); _showLogin(); }
 
 // ── DASHBOARD ────────────────────────────────────────────────────────────
-let _timer;
-function _afterLogin(){ load(); if(_timer) clearInterval(_timer); _timer=setInterval(load,30000); }
+let _timer,_dashData=null;
+function _initDashControls(){
+  const q=document.getElementById('dash-q'),s=document.getElementById('dash-sort');
+  if(!q||q.dataset.inited==='1') return;
+  q.dataset.inited='1';
+  q.value=sessionStorage.getItem('ku_dash_q')||'';
+  s.value=sessionStorage.getItem('ku_dash_sort')||'problems';
+  const go=()=>{ if(_dashData) render(_dashData); };
+  q.addEventListener('input',()=>{ sessionStorage.setItem('ku_dash_q',q.value); go(); });
+  s.addEventListener('change',()=>{ sessionStorage.setItem('ku_dash_sort',s.value); go(); });
+}
+function _afterLogin(){ _initDashControls(); load(); if(_timer) clearInterval(_timer); _timer=setInterval(load,30000); }
+
+function _problemScore(name,cfg,d){
+  const wd=(d.watchdog&&d.watchdog[name]&&d.watchdog[name].state)||'';
+  let s=0;
+  if(cfg.online===false) s+=1000;
+  else if(cfg.online!==true) s+=400;
+  if(wd==='DEAD'||wd==='CRITICAL') s+=500;
+  else if(wd&&wd!=='OK') s+=150;
+  const sites=(d.sites&&d.sites[name])||{};
+  for(const i of Object.values(sites)) if(i&&!i.status) s+=30;
+  return s;
+}
+function _label(a){const[n,c]=a;return(c.display_name||n||'').toLowerCase();}
 
 async function load(){
   try{
-    const r=await fetch('/api/status'); const d=await r.json(); render(d);
+    const r=await fetch('/api/status'); const d=await r.json(); _dashData=d; render(d);
     document.getElementById('upd').textContent='Обновлено: '+new Date().toLocaleTimeString('ru');
   }catch(e){ document.getElementById('grid').innerHTML='<p style="color:var(--red);padding:20px">'+e+'</p>'; }
 }
@@ -100,8 +140,36 @@ async function load(){
 function render(d){
   const R=d.routers||{},N=Object.keys(R),on=N.filter(n=>R[n].online===true).length,off=N.filter(n=>R[n].online===false).length,pc=Object.keys(d.sites||{}).length;
   document.getElementById('pills').innerHTML=`<span class="pill">Всего: <b>${N.length}</b></span><span class="pill on">Online: <b>${on}</b></span><span class="pill off">Offline: <b>${off}</b></span><span class="pill pc">PC: <b>${pc}</b></span>`;
+  const qEl=document.getElementById('dash-q'),sEl=document.getElementById('dash-sort'),hint=document.getElementById('dash-hint');
+  const q=(qEl&&qEl.value||'').trim().toLowerCase();
+  const sort=(sEl&&sEl.value)||'problems';
+  let pairs=Object.entries(R).filter(([name,cfg])=>{
+    if(!q) return true;
+    const hay=[name,cfg.display_name||'',cfg.ip||'',cfg.web_url||''].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  const total=N.length;
+  pairs.sort((a,b)=>{
+    const cmpName=_label(a).localeCompare(_label(b),'ru');
+    if(sort==='name') return cmpName;
+    if(sort==='name_desc') return _label(b).localeCompare(_label(a),'ru');
+    if(sort==='online_first'){
+      const oa=a[1].online===true,ob=b[1].online===true;
+      if(oa!==ob) return oa?-1:1;
+      return cmpName;
+    }
+    if(sort==='offline_first'){
+      const fa=a[1].online===false,fb=b[1].online===false;
+      if(fa!==fb) return fa?-1:1;
+      return cmpName;
+    }
+    const sa=_problemScore(a[0],a[1],d),sb=_problemScore(b[0],b[1],d);
+    if(sb!==sa) return sb-sa;
+    return cmpName;
+  });
+  if(hint) hint.textContent=pairs.length===total?`${total} роутеров`: `Показано ${pairs.length} из ${total}`;
   let h='';
-  for(const[name,cfg]of Object.entries(R)){
+  for(const[name,cfg]of pairs){
     const ol=cfg.online,bc=ol===true?'on':ol===false?'off':'unk',bl=ol===true?'ONLINE':ol===false?'OFFLINE':'—';
     const dn=cfg.display_name||name,sites=d.sites?.[name]||{},wd=d.watchdog?.[name]||{},sp=d.speed?.[name]||[],last=sp.length?sp[sp.length-1]:{};
     let sh='';for(const[s,i]of Object.entries(sites)){sh+=`<span class="sp ${i.status?'ok':'fail'}">${i.status?'✓':'✗'} ${s}</span>`}
@@ -112,6 +180,7 @@ function render(d){
     const lc=cfg.last_check?new Date(cfg.last_check).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
     h+=`<div class="card"><div class="card-top"><h3>${dn}</h3><span class="badge ${bc}">${bl}</span></div>${sh?`<div class="sites">${sh}</div>`:''}${spH}${ch}${wh}<div class="card-foot"><span>${lc} · ${cfg.ip||''}</span><span>${cfg.web_url?`<a href="${cfg.web_url}" target="_blank">↗</a> · `:''}${sp.length?`<a href="/stats/${name}">📊</a>`:''}</span></div></div>`;
   }
+  if(!h&&total) h='<p style="color:var(--muted);padding:24px">Нет совпадений по поиску — измени запрос.</p>';
   document.getElementById('grid').innerHTML=h;
   const ev=d.events||[];
   if(ev.length){
