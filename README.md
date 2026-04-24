@@ -425,7 +425,8 @@ keenetic-unified/
 └── docs/                          # Изображения для документации
     ├── architecture.png
     ├── dashboard.png
-    └── domains.png
+    ├── domains.png
+    └── donation_qr.png            # QR перевода в Т-Банк (поддержка)
 ```
 
 ---
@@ -468,6 +469,13 @@ Remove-Item "$env:LOCALAPPDATA\keenetic-unified" -Recurse -Force
 
 ## Поддержка проекта
 
-Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate). На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через `.github/FUNDING.yml`).
+Если проект полезен — можно поддержать развитие:
+
+- [Boosty](https://boosty.to/andrey27/donate)
+- Перевод в **Т-Банк**: [страница перевода](https://www.tinkoff.ru/rm/r_avmEGQKPOg.NbQhLsnBth/YW9h150011)
+
+![QR-код — перевод в Т-Банк](docs/donation_qr.png)
+
+На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через `.github/FUNDING.yml`).
 
 **Связь:** [Telegram @Iot_andrey](https://t.me/Iot_andrey) — вопросы и обратная связь.
