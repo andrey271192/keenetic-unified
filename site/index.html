@@ -40,9 +40,7 @@ header{
   background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 50%,#1a3a5c 100%);
   color:white;padding:0;position:sticky;top:0;z-index:500;
   box-shadow:0 2px 20px rgba(0,0,0,0.3);
-  transition: transform 0.3s ease;
 }
-header.header-hidden { transform: translateY(-100%); }
 .header-inner{
   max-width:1400px;margin:0 auto;
   display:flex;align-items:center;justify-content:space-between;
@@ -93,7 +91,7 @@ header.header-hidden { transform: translateY(-100%); }
 }
 .tab-bar-inner{
   max-width:1400px;margin:0 auto;
-  padding:0 24px;display:flex;gap:2px;
+  padding:0 16px;display:flex;gap:0;
 }
 .tab-btn{
   padding:14px 20px;background:none;border:none;
@@ -102,6 +100,8 @@ header.header-hidden { transform: translateY(-100%); }
   font-size:0.9rem;font-weight:600;cursor:pointer;
   transition:all 0.2s;display:flex;align-items:center;
   gap:7px;margin-bottom:-1px;white-space:nowrap;
+  touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);
+  min-height:44px;
 }
 .tab-btn:hover{color:var(--blue);background:rgba(26,86,219,0.04);}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
@@ -297,17 +297,31 @@ header.header-hidden { transform: translateY(-100%); }
   border:1px solid rgba(26,86,219,0.2);padding:5px 12px;
   border-radius:20px;font-size:0.75rem;font-weight:600;
   cursor:pointer;font-family:'Onest',sans-serif;transition:all 0.15s;
+  touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);
 }
 .fm-btn-open:hover{background:var(--blue);color:white;}
 .fm-btn-del{
   background:rgba(239,68,68,0.08);color:var(--red);
   border:1px solid rgba(239,68,68,0.15);
-  width:28px;height:28px;border-radius:50%;
-  font-size:0.8rem;cursor:pointer;
+  width:36px;height:36px;border-radius:50%;
+  font-size:0.9rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:all 0.15s;
+  touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);
+  flex-shrink:0;
 }
 .fm-btn-del:hover{background:var(--red);color:white;border-color:var(--red);}
+.fm-btn-dl{
+  background:rgba(16,185,129,0.08);color:var(--green);
+  border:1px solid rgba(16,185,129,0.2);
+  width:36px;height:36px;border-radius:50%;
+  font-size:0.9rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;text-decoration:none;
+  touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);
+  flex-shrink:0;
+}
+.fm-btn-dl:hover{background:var(--green);color:white;}
 .fm-empty{text-align:center;padding:52px 20px;color:var(--text3);}
 .fm-empty-icon{font-size:2.8rem;margin-bottom:12px;}
 .fm-empty-title{font-size:1rem;font-weight:600;color:var(--text2);margin-bottom:6px;}
@@ -317,7 +331,7 @@ header.header-hidden { transform: translateY(-100%); }
 .pin-modal{
   display:none;position:fixed;inset:0;
   background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);
-  z-index:8000;align-items:center;justify-content:center;
+  z-index:9900;align-items:center;justify-content:center;
 }
 .pin-modal.open{display:flex;}
 .pin-box{
@@ -361,6 +375,13 @@ header.header-hidden { transform: translateY(-100%); }
   font-family:'Onest',sans-serif;cursor:pointer;transition:all 0.2s;
 }
 .fv-ext-btn:hover{background:rgba(255,255,255,0.25);}
+.fv-del-btn{
+  background:rgba(239,68,68,0.25);border:none;color:white;
+  padding:7px 14px;border-radius:20px;font-size:0.8rem;
+  font-family:'Onest',sans-serif;cursor:pointer;transition:all 0.2s;
+  touch-action:manipulation;
+}
+.fv-del-btn:hover{background:rgba(239,68,68,0.5);}
 .fv-close{
   background:rgba(255,255,255,0.12);border:none;color:white;
   width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:700;
@@ -420,10 +441,10 @@ header.header-hidden { transform: translateY(-100%); }
 .orion-leg-l{animation:leg-l 1.2s ease-in-out infinite alternate;}
 .orion-leg-r{animation:leg-r 1.2s ease-in-out infinite alternate;}
 
-/* CHAT */
-.chat-widget{position:fixed;right:24px;bottom:90px;z-index:2500;font-family:'Onest',sans-serif;}
+/* CHAT — родитель без pointer-events, иначе на мобильных перехватывает касания по всей области под окном */
+.chat-widget{position:fixed;right:24px;bottom:90px;z-index:2500;font-family:'Onest',sans-serif;pointer-events:none;}
 .chat-widget.minimized .chat-win{transform:scale(0) translateY(20px);opacity:0;pointer-events:none;}
-.chat-minimize-toggle{position:absolute;top:-40px;right:0;width:40px;height:40px;background:var(--navy);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:20px;z-index:10;transition:all 0.2s;}
+.chat-minimize-toggle{position:absolute;top:-40px;right:0;width:40px;height:40px;background:var(--navy);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:20px;z-index:10;transition:all 0.2s;pointer-events:auto;}
 .chat-minimize-toggle:hover{background:var(--blue);}
 .chat-win{width:420px;height:560px;background:white;border-radius:24px;box-shadow:0 24px 64px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);transform:scale(0.92) translateY(20px);opacity:0;pointer-events:none;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
 .chat-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
@@ -495,22 +516,50 @@ header.header-hidden { transform: translateY(-100%); }
 
 @media(max-width:768px){
   .header-inner{padding:12px 16px;}
-  .main-wrap{padding:16px 16px 100px;}
-  .tab-btn{padding:12px 12px;font-size:0.8rem;}
-  .chat-win{width:calc(100vw - 32px);right:-4px;height:80vh;max-height:540px;}
-  .chat-widget{right:12px;bottom:12px;}
-  .feedback-btn{right:12px;bottom:80px;}
-  .feedback-modal{width:calc(100vw - 24px);right:12px;bottom:150px;}
-  .orion-container{left:12px;bottom:12px;}
+  .main-wrap{padding:12px 12px 24px;}
+  .tab-bar-inner{padding:0 4px;}
+  .tab-btn{padding:10px 6px;font-size:0.7rem;gap:3px;min-height:42px;flex:1;justify-content:center;}
+  /* Скрываем плавающие элементы на мобильном — они ломают клики */
+  .orion-container{display:none!important;}
+  .feedback-btn{display:none!important;}
+  .feedback-modal{display:none!important;}
+  .chat-widget.minimized{display:none;}
+  .chat-win{width:calc(100vw - 24px);right:12px;left:12px;bottom:12px;height:calc(100vh - 100px);max-height:none;}
+  .chat-widget{right:12px;bottom:12px;left:12px;z-index:4000;}
   .fm-layout{flex-direction:column;}
   .fm-sidebar{width:100%;position:static;}
-  .fm-file-header,.fm-file-item{grid-template-columns:36px 1fr 100px;}
+  .fm-file-header,.fm-file-item{grid-template-columns:36px 1fr 110px;}
   .fm-file-header > :nth-child(3),.fm-file-header > :nth-child(4),
   .fm-file-item > :nth-child(3),.fm-file-item > :nth-child(4){display:none;}
+  /* Хедер — не sticky на мобильном */
+  header{position:relative;}
+  .tab-bar{top:0;}
 }
 .tdot{width:6px;height:6px;border-radius:50%;background:#94a3b8;display:inline-block;animation:tdotBounce 1s infinite ease-in-out;}
 @keyframes tdotBounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
 @keyframes opPulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+/* DELETE CONFIRM MODAL */
+.del-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(6px);z-index:9500;align-items:center;justify-content:center;}
+.del-modal.open{display:flex;}
+.del-modal-box{background:white;border-radius:20px;padding:28px 28px 24px;
+  max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;}
+.del-modal-icon{font-size:2.5rem;margin-bottom:12px;}
+.del-modal-box h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
+.del-modal-name{font-size:0.85rem;color:var(--text2);margin-bottom:20px;
+  word-break:break-all;line-height:1.4;}
+.del-modal-btns{display:flex;gap:10px;}
+.del-modal-cancel{flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--surface3);
+  background:var(--surface2);color:var(--text);font-family:'Onest',sans-serif;
+  font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.del-modal-cancel:hover{background:var(--surface3);}
+.del-modal-ok{flex:1;padding:11px;border-radius:10px;border:none;
+  background:#ef4444;color:white;font-family:'Onest',sans-serif;
+  font-size:0.9rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
+.del-modal-ok:hover{background:#dc2626;}
+/* PROGRAMS / PORTALS TABS */
+.tab-section-inner{max-width:1400px;margin:0 auto;padding:24px;}
+.tab-section-title{font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:20px;}
 </style>
 </head>
 <body>
@@ -544,6 +593,8 @@ header.header-hidden { transform: translateY(-100%); }
   <div class="tab-bar-inner">
     <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд</button>
     <button class="tab-btn" data-tab="files" onclick="switchTab('files')">📁 Файлы</button>
+    <button class="tab-btn" data-tab="programs" onclick="switchTab('programs')">📦 Программы</button>
+    <button class="tab-btn" data-tab="portals" onclick="switchTab('portals')">🔗 Порталы</button>
     <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">🤖 Помощник</button>
   </div>
 </nav>
@@ -694,6 +745,66 @@ header.header-hidden { transform: translateY(-100%); }
         </div>
       </div>
 
+      <!-- PERCENT CALC -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <div class="dash-icon blue">📐</div>
+          <span style="font-size:1rem;font-weight:700">Калькулятор %</span>
+        </div>
+        <div style="margin-bottom:8px;display:flex;gap:6px;">
+          <button class="btn" id="pctMode1" onclick="setPctMode(1)"
+            style="flex:1;padding:7px;font-size:0.8rem;background:var(--blue);color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;">X% от Y</button>
+          <button class="btn" id="pctMode2" onclick="setPctMode(2)"
+            style="flex:1;padding:7px;font-size:0.8rem;background:var(--surface2);color:var(--text2);border:1.5px solid var(--surface3);border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;">Сколько %</button>
+          <button class="btn" id="pctMode3" onclick="setPctMode(3)"
+            style="flex:1;padding:7px;font-size:0.8rem;background:var(--surface2);color:var(--text2);border:1.5px solid var(--surface3);border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;">+/− %</button>
+        </div>
+        <!-- Mode 1: X% от Y -->
+        <div id="pctBlock1" class="vat-inputs">
+          <div class="field-group">
+            <label>Процент (%)</label>
+            <input type="number" id="pct1Pct" placeholder="18" oninput="calcPct()">
+          </div>
+          <div class="field-group">
+            <label>Сумма (руб.)</label>
+            <input type="number" id="pct1Sum" placeholder="100000" oninput="calcPct()">
+          </div>
+        </div>
+        <!-- Mode 2: Y составляет ?% от Z -->
+        <div id="pctBlock2" class="vat-inputs" style="display:none;">
+          <div class="field-group">
+            <label>Часть (руб.)</label>
+            <input type="number" id="pct2Part" placeholder="18000" oninput="calcPct()">
+          </div>
+          <div class="field-group">
+            <label>Целое (руб.)</label>
+            <input type="number" id="pct2Whole" placeholder="100000" oninput="calcPct()">
+          </div>
+        </div>
+        <!-- Mode 3: Сумма +/− % -->
+        <div id="pctBlock3" class="vat-inputs" style="display:none;">
+          <div class="field-group">
+            <label>Сумма (руб.)</label>
+            <input type="number" id="pct3Sum" placeholder="100000" oninput="calcPct()">
+          </div>
+          <div class="field-group">
+            <label>Изменение (%)</label>
+            <input type="number" id="pct3Pct" placeholder="20" oninput="calcPct()">
+          </div>
+          <div class="field-group" style="grid-column:1/-1;display:flex;gap:8px;">
+            <button class="btn" onclick="pct3dir=1;calcPct()" id="pct3plus"
+              style="flex:1;padding:7px;font-size:0.82rem;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;">+ Прибавить</button>
+            <button class="btn" onclick="pct3dir=-1;calcPct()" id="pct3minus"
+              style="flex:1;padding:7px;font-size:0.82rem;background:var(--surface2);color:var(--text2);border:1.5px solid var(--surface3);border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;">− Вычесть</button>
+          </div>
+        </div>
+        <div class="vat-result" id="pctResult" style="background:rgba(26,86,219,0.06);border-left:3px solid var(--blue);">
+          <div class="res-label" id="pctResLabel">Результат</div>
+          <div class="res-val" id="pctResVal" style="color:var(--blue);">—</div>
+          <div class="res-total" id="pctResExtra"></div>
+        </div>
+      </div>
+
       <!-- CURRENCY -->
       <div class="dash-card">
         <div class="dash-card-header">
@@ -732,14 +843,6 @@ header.header-hidden { transform: translateY(-100%); }
 
     <!-- ACCORDION -->
     <div class="accordion">
-      <div class="acc-item open">
-        <div class="acc-header"><span>📦 Программы и ПО</span><span class="arr">▼</span></div>
-        <div class="acc-body"><div class="acc-inner"><div class="cards-grid" id="programsContainer"></div></div></div>
-      </div>
-      <div class="acc-item">
-        <div class="acc-header"><span>🔗 Рабочие порталы</span><span class="arr">▼</span></div>
-        <div class="acc-body"><div class="acc-inner"><div class="cards-grid" id="linksContainer"></div></div></div>
-      </div>
       <div class="acc-item">
         <div class="acc-header"><span>💻 Ярлык сайта на рабочий стол (ПК)</span><span class="arr">▼</span></div>
         <div class="acc-body"><div class="acc-inner"><div class="ins-box">
@@ -796,9 +899,9 @@ header.header-hidden { transform: translateY(-100%); }
       <!-- SIDEBAR -->
       <aside class="fm-sidebar">
         <div class="fm-sidebar-title">Папки</div>
-        <div class="fm-folder-item active" data-folder="Клиенты" onclick="selectFolder('Клиенты')">
-          <span>👥</span><span>Клиенты</span>
-          <span class="fm-folder-count" id="count-Клиенты">—</span>
+        <div class="fm-folder-item active" data-folder="Документы" onclick="selectFolder('Документы')">
+          <span>📁</span><span>Документы</span>
+          <span class="fm-folder-count" id="count-Документы">—</span>
         </div>
         <div class="fm-folder-item" data-folder="Отчёты" onclick="selectFolder('Отчёты')">
           <span>📊</span><span>Отчёты</span>
@@ -876,7 +979,24 @@ header.header-hidden { transform: translateY(-100%); }
     </div>
   </div><!-- /tab-assistant -->
 
+  <!-- ========== TAB: PROGRAMS ========== -->
+  <div id="tab-programs" class="tab-section">
+    <div class="tab-section-inner">
+      <div class="tab-section-title">📦 Программы и ПО</div>
+      <div class="cards-grid" id="programsContainer"></div>
+    </div>
+  </div><!-- /tab-programs -->
+
+  <!-- ========== TAB: PORTALS ========== -->
+  <div id="tab-portals" class="tab-section">
+    <div class="tab-section-inner">
+      <div class="tab-section-title">🔗 Рабочие порталы</div>
+      <div class="cards-grid" id="linksContainer"></div>
+    </div>
+  </div><!-- /tab-portals -->
+
 </div><!-- /main-wrap -->
+
 
 <!-- ORION -->
 <div class="orion-container" id="orionContainer">
@@ -1073,7 +1193,8 @@ header.header-hidden { transform: translateY(-100%); }
   <div class="fv-header">
     <span>📄</span>
     <span class="fv-filename" id="fvFilename">Файл</span>
-    <a id="fvExtLink" href="#" target="_blank" class="fv-ext-btn">🔗 Открыть в Drive</a>
+    <a id="fvExtLink" href="#" download class="fv-ext-btn">⬇️ Скачать</a>
+    <button class="fv-del-btn" id="fvDelBtn" onclick="fmDelFromViewer()" title="Удалить файл">🗑️ Удалить</button>
     <button class="fv-close" onclick="closeFV()">✕</button>
   </div>
   <div class="fv-body" id="fvBody"></div>
@@ -1083,6 +1204,23 @@ header.header-hidden { transform: translateY(-100%); }
 <div class="toast" id="toast"></div>
 
 <script>
+// Глобальный перехватчик ошибок — показывает JS-ошибки прямо на экране
+window.onerror=function(msg,src,line,col,err){
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;top:0;left:0;right:0;background:#ef4444;color:white;padding:10px 16px;font-size:13px;z-index:99999;word-break:break-all;';
+  d.textContent='JS ERROR ('+line+'): '+msg;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),10000);
+  return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;top:0;left:0;right:0;background:#f59e0b;color:#000;padding:10px 16px;font-size:13px;z-index:99999;word-break:break-all;';
+  d.textContent='Promise error: '+(e.reason&&e.reason.message||String(e.reason));
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),10000);
+});
+
 // =========================================
 //  НАСТРОЙКИ
 // =========================================
@@ -1261,6 +1399,58 @@ function calcProfit(){
   document.getElementById('profitResultMargin').textContent='Маржа: '+margin.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' %';
 }
 function askOrionProfit(){const rev=document.getElementById('profitRevenue').value||'выручку';const cost=document.getElementById('profitCost').value||'расходы';quickAsk(`Объясни расчет прибыли и маржинальности при выручке ${rev} руб. и расходах ${cost} руб. Покажи формулу и вывод.`);}
+
+// =========================================
+//  PERCENT CALCULATOR
+// =========================================
+let _pctMode=1,pct3dir=1;
+function setPctMode(m){
+  _pctMode=m;
+  [1,2,3].forEach(i=>{
+    const btn=document.getElementById('pctMode'+i);
+    const blk=document.getElementById('pctBlock'+i);
+    const active=i===m;
+    btn.style.background=active?'var(--blue)':'var(--surface2)';
+    btn.style.color=active?'white':'var(--text2)';
+    btn.style.border=active?'none':'1.5px solid var(--surface3)';
+    blk.style.display=active?'grid':'none';
+  });
+  calcPct();
+}
+function calcPct(){
+  const fmt=n=>isFinite(n)?n.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+  const fmtPct=n=>isFinite(n)?n.toLocaleString('ru-RU',{minimumFractionDigits:4,maximumFractionDigits:4}):'—';
+  const label=document.getElementById('pctResLabel');
+  const val=document.getElementById('pctResVal');
+  const extra=document.getElementById('pctResExtra');
+  if(_pctMode===1){
+    const pct=parseFloat(document.getElementById('pct1Pct').value)||0;
+    const sum=parseFloat(document.getElementById('pct1Sum').value)||0;
+    const res=sum*pct/100;
+    label.textContent=pct+'% от суммы';
+    val.textContent=fmt(res)+' ₽';
+    extra.textContent='Остаток: '+fmt(sum-res)+' ₽';
+  } else if(_pctMode===2){
+    const part=parseFloat(document.getElementById('pct2Part').value)||0;
+    const whole=parseFloat(document.getElementById('pct2Whole').value)||0;
+    const res=whole>0?(part/whole*100):0;
+    label.textContent='Доля части от целого';
+    val.textContent=fmtPct(res)+' %';
+    extra.textContent='Разница: '+fmt(whole-part)+' ₽';
+  } else {
+    const sum=parseFloat(document.getElementById('pct3Sum').value)||0;
+    const pct=parseFloat(document.getElementById('pct3Pct').value)||0;
+    const delta=sum*pct/100*pct3dir;
+    const res=sum+delta;
+    document.getElementById('pct3plus').style.background=pct3dir===1?'var(--green)':'var(--surface2)';
+    document.getElementById('pct3plus').style.color=pct3dir===1?'white':'var(--text2)';
+    document.getElementById('pct3minus').style.background=pct3dir===-1?'var(--red)':'var(--surface2)';
+    document.getElementById('pct3minus').style.color=pct3dir===-1?'white':'var(--text2)';
+    label.textContent=pct3dir===1?'Сумма + '+pct+'%':'Сумма − '+pct+'%';
+    val.textContent=fmt(res)+' ₽';
+    extra.textContent=(pct3dir===1?'Прибавлено: +':'Вычтено: −')+fmt(Math.abs(delta))+' ₽';
+  }
+}
 
 // =========================================
 //  CURRENCY
@@ -1496,14 +1686,7 @@ updateHolidayPill();setInterval(updateHolidayPill,60000*60);
 // =========================================
 //  HEADER SCROLL
 // =========================================
-let lastScrollY=window.scrollY;
-const header=document.getElementById('mainHeader');
-window.addEventListener('scroll',()=>{
-  const currentY=window.scrollY;
-  if(currentY>lastScrollY&&currentY>80){header.classList.add('header-hidden');}
-  else{header.classList.remove('header-hidden');}
-  lastScrollY=currentY;
-},{passive:true});
+// Header всегда видим — без скрытия при скролле
 
 // =========================================
 //  PIN MODAL
@@ -1523,8 +1706,9 @@ function showPinModal(onSuccess){
 
 function closePinModal(){
   document.getElementById('pinModal').classList.remove('open');
-  pinValue='';pinCallback=null;
+  pinValue='';
   updatePinDots();
+  pinCallback=null;
 }
 
 function updatePinDots(){
@@ -1542,9 +1726,10 @@ function pinPress(digit){
     if(pinValue===FILE_PIN){
       sessionStorage.setItem('file_pin_ok','1');
       document.getElementById('pinStatusBadge').style.display='flex';
+      const cb=pinCallback;
       closePinModal();
       toast('🔓 Авторизован! Можно загружать файлы.');
-      if(pinCallback)pinCallback();
+      if(cb)cb();
     }else{
       document.getElementById('pinError').textContent='Неверный PIN-код';
       setTimeout(()=>{pinValue='';updatePinDots();document.getElementById('pinError').textContent='';},900);
@@ -1571,11 +1756,11 @@ document.getElementById('pinModal').addEventListener('click',e=>{
 //  FILE MANAGER
 // =========================================
 const FM_FOLDERS={
-  'Клиенты':{icon:'👥',label:'Клиенты'},
+  'Документы':{icon:'📁',label:'Документы'},
   'Отчёты':{icon:'📊',label:'Отчёты'},
   'Договоры':{icon:'📄',label:'Договоры'}
 };
-let fmCurrentFolder='Клиенты';
+let fmCurrentFolder='Документы';
 let fmFileCache={};   // folder -> [{id, name, mimeType, size, modifiedTime}]
 let fmLoading=false;
 
@@ -1648,30 +1833,75 @@ function formatFileDate(iso){
   catch{return iso;}
 }
 
+// Глобальный кэш файлов для onclick-обработчиков
+window._fmList=[];
+
 function renderFileList(files){
+  window._fmList=files||[];
   const container=document.getElementById('fmFileList');
   if(!files||files.length===0){
     container.innerHTML='<div class="fm-empty"><div class="fm-empty-icon">📂</div><div class="fm-empty-title">Папка пуста</div><div style="font-size:0.82rem;margin-top:4px;">Загрузите первый файл</div></div>';
     return;
   }
-  let html=`<div class="fm-file-header"><div></div><div>Название</div><div>Размер</div><div>Изменён</div><div style="text-align:right">Действия</div></div>`;
-  files.forEach(f=>{
+  let html=`<div class="fm-file-header"><div></div><div>Название</div><div>Размер</div><div>Изменён</div><div style="text-align:right">Открыть</div></div>`;
+  files.forEach((f,idx)=>{
     const icon=getFileIcon(f.mimeType,f.name);
     const size=formatFileSize(f.size);
     const date=formatFileDate(f.modifiedTime);
-    const safeId=esc(f.id);const safeName=esc(f.name);const safeMime=esc(f.mimeType||'');
-    html+=`<div class="fm-file-item">
+    html+=`<div class="fm-file-item" id="fmrow-${idx}">
       <div class="fm-file-icon">${icon}</div>
-      <div class="fm-file-name" onclick="viewFile('${safeId}','${safeMime}','${safeName}')" title="${safeName}">${safeName}</div>
+      <div class="fm-file-name" onclick="fmOpen(${idx})" title="${esc(f.name)}">${esc(f.name)}</div>
       <div class="fm-file-size">${size}</div>
       <div class="fm-file-date">${date}</div>
       <div class="fm-file-actions">
-        <button class="fm-btn-open" onclick="viewFile('${safeId}','${safeMime}','${safeName}')">Открыть</button>
-        <button class="fm-btn-del" onclick="deleteFile('${safeId}','${safeName}')" title="Удалить">✕</button>
+        <button class="fm-btn-open" onclick="fmOpen(${idx})">Открыть</button>
       </div>
     </div>`;
   });
   container.innerHTML=html;
+}
+
+window._fmViewIdx=null;
+
+function fmOpen(idx){
+  const f=window._fmList[idx];
+  if(!f)return;
+  if(!checkPinAuth()){showPinModal(function(){fmOpen(idx);});return;}
+  window._fmViewIdx=idx;
+  viewFile(f.id,f.mimeType||'',f.name,f.webViewLink||'');
+}
+
+function fmDelFromViewer(){
+  const idx=window._fmViewIdx;
+  if(idx===null||idx===undefined)return;
+  if(!checkPinAuth()){showPinModal(function(){fmDelFromViewer();});return;}
+  closeFV();
+  fmDelDo(idx);
+}
+
+async function fmDelDo(idx){
+  const f=window._fmList[idx];
+  if(!f)return;
+  if(!checkPinAuth()){showPinModal(function(){fmDelDo(idx);});return;}
+  const row=document.getElementById('fmrow-'+idx);
+  if(row){row.style.opacity='0.4';row.style.pointerEvents='none';}
+  try{
+    const r=await fetch('/delete_file.php?id='+encodeURIComponent(f.id)+'&pin='+encodeURIComponent(FILE_PIN));
+    const d=await r.json();
+    if(d.success){
+      if(row)row.remove();
+      window._fmList[idx]=null;
+      toast('🗑️ Удалено: '+f.name);
+      delete fmFileCache[fmCurrentFolder];
+      loadCurrentFolder(true);
+    }else{
+      if(row){row.style.opacity='';row.style.pointerEvents='';}
+      toast('❌ Ошибка: '+(d.error||'неизвестно'));
+    }
+  }catch(e){
+    if(row){row.style.opacity='';row.style.pointerEvents='';}
+    toast('❌ '+e.message);
+  }
 }
 
 // Upload
@@ -1751,49 +1981,41 @@ function uploadFile(file){
   xhr.send(fd);
 }
 
-async function deleteFile(fileId,fileName){
-  if(!checkPinAuth()){showPinModal(()=>deleteFile(fileId,fileName));return;}
-  if(!confirm('Удалить файл «'+fileName+'»?\nФайл будет удалён из Google Drive.'))return;
-  try{
-    const r=await fetch('/delete_file.php?id='+encodeURIComponent(fileId)+'&pin='+FILE_PIN);
-    const d=await r.json();
-    if(d.success){
-      toast('🗑️ Файл удалён: '+fileName);
-      delete fmFileCache[fmCurrentFolder];
-      loadCurrentFolder(true);
-    }else{
-      toast('❌ Ошибка удаления: '+(d.error||''));
-    }
-  }catch{toast('❌ Ошибка соединения');}
-}
 
 // File viewer
-function viewFile(fileId,mimeType,fileName){
-  const viewLink='https://drive.google.com/file/d/'+fileId+'/view';
-  const embedLink='https://drive.google.com/file/d/'+fileId+'/preview';
-  const docsViewer='https://docs.google.com/viewer?url=https://drive.google.com/uc?id='+fileId+'&embedded=true';
+function viewFile(fileId,mimeType,fileName,webViewLink){
+  let directUrl=webViewLink||('/uploads/'+encodeURIComponent(fileId));
 
   document.getElementById('fvFilename').textContent=fileName;
-  document.getElementById('fvExtLink').href=viewLink;
+  document.getElementById('fvExtLink').href=directUrl;
 
   const body=document.getElementById('fvBody');
   body.innerHTML='';
 
-  if(/image/i.test(mimeType)){
+  const ext=(fileName.split('.').pop()||'').toLowerCase();
+
+  if(/image/i.test(mimeType)||['jpg','jpeg','png','gif','webp','bmp'].includes(ext)){
     const img=document.createElement('img');
-    img.src='https://drive.google.com/uc?id='+fileId;
-    img.alt=fileName;
+    img.src=directUrl;img.alt=fileName;
     body.appendChild(img);
-  }else if(/pdf/i.test(mimeType)||/\.pdf$/i.test(fileName)){
+  }else if(/pdf/i.test(mimeType)||ext==='pdf'){
     const iframe=document.createElement('iframe');
-    iframe.src=embedLink;
+    iframe.src=directUrl;
+    iframe.style.cssText='width:100%;height:100%;border:none;';
+    body.appendChild(iframe);
+  }else if(['doc','docx','xls','xlsx','ppt','pptx'].includes(ext)){
+    // Google Docs Viewer для Office файлов
+    const iframe=document.createElement('iframe');
+    iframe.src='https://docs.google.com/viewer?url='+encodeURIComponent(location.origin+directUrl)+'&embedded=true';
     iframe.style.cssText='width:100%;height:100%;border:none;';
     body.appendChild(iframe);
   }else{
-    const iframe=document.createElement('iframe');
-    iframe.src='https://docs.google.com/viewer?srcid='+fileId+'&pid=explorer&efh=false&a=v&chrome=false&embedded=true';
-    iframe.style.cssText='width:100%;height:100%;border:none;';
-    body.appendChild(iframe);
+    // Остальные — кнопка скачать
+    body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:#475569;">'
+      +'<div style="font-size:3rem;">📄</div>'
+      +'<div style="font-size:1rem;font-weight:600;">'+esc(fileName)+'</div>'
+      +'<a href="'+directUrl+'" download="'+esc(fileName)+'" style="background:var(--blue);color:white;padding:10px 24px;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.9rem;">⬇️ Скачать файл</a>'
+      +'</div>';
   }
 
   document.getElementById('fvModal').classList.add('open');
