@@ -103,10 +103,16 @@ async def watchdog_heartbeat(report: WatchdogReport):
 async def push_sites(report: SitesReport):
     R, S, _, _, Q = _s(); n = report.router.strip().lower(); now = datetime.now().isoformat(); nr = False
     if n not in R: R[n] = {"ip":"","user":"admin","password":"","display_name":n,"web_url":"","online":True,"last_check":now}; save_json(config.ROUTERS_FILE, R)
-    # Normalize site names: "youtube" -> "YouTube", "netflix" -> "Netflix"
+    # Normalize site names to consistent "domain.com" format:
+    # strip www., lowercase. E.g. "www.Canva.com" -> "canva.com", "Netflix" -> "netflix.com"
+    _KNOWN = {"netflix":"netflix.com","youtube":"youtube.com","canva":"canva.com",
+              "instagram":"instagram.com","telegram":"telegram.org"}
     normalized = {}
     for site, ok in report.sites.items():
-        key = site.capitalize()
+        key = site.lower().strip()
+        if key.startswith("www."): key = key[4:]
+        if key in _KNOWN: key = _KNOWN[key]
+        elif "." not in key: key = key + ".com"
         normalized[key] = ok
     for site, ok in normalized.items():
         prev = S.get(n, {}).get(site, {}).get("status")
@@ -138,6 +144,41 @@ async def push_speed(report: SpeedReport):
     H[n].append({"ts":datetime.now().isoformat(),"vpn_down":report.vpn_down,"vpn_up":report.vpn_up,"ru_down":report.ru_down,"ru_up":report.ru_up,"ping":report.ping,"ru_ping":report.ru_ping})
     save_json(config.SPEED_FILE, H)
     if 0 < report.vpn_down < 5: await notify(n,"SPEED_LOW",f"VPN: {report.vpn_down:.1f} Mbps",R)
+    return {"ok": True}
+
+@router.post("/sites/clean")
+async def clean_sites(x_admin_password: str = Header("")):
+    """Remove legacy/duplicate site entries — keep only normalized domain.com keys."""
+    _chk(x_admin_password)
+    _, S, _, _, _ = _s()
+    _VALID_SUFFIX = (".com", ".org", ".net", ".io", ".tv", ".co")
+    for rname in list(S.keys()):
+        cleaned = {}
+        for k, v in S[rname].items():
+            nk = k.lower().strip()
+            if nk.startswith("www."): nk = nk[4:]
+            if not any(nk.endswith(s) for s in _VALID_SUFFIX): nk = nk + ".com"
+            if nk not in cleaned:
+                cleaned[nk] = v
+        S[rname] = cleaned
+    save_json(config.SITES_FILE, dict(S))
+    return {"ok": True}
+
+@router.post("/set_password")
+async def set_password(body: dict, x_admin_password: str = Header("")):
+    _chk(x_admin_password)
+    new_pwd = (body.get("password") or "").strip()
+    if len(new_pwd) < 4: raise HTTPException(400, "Пароль минимум 4 символа")
+    env_path = config.BASE_DIR / ".env"
+    import re as _re
+    if env_path.exists():
+        txt = env_path.read_text()
+        if "ADMIN_PASSWORD" in txt:
+            txt = _re.sub(r"ADMIN_PASSWORD=.*", f"ADMIN_PASSWORD={new_pwd}", txt)
+        else:
+            txt += f"\nADMIN_PASSWORD={new_pwd}\n"
+        env_path.write_text(txt)
+    config.ADMIN_PASSWORD = new_pwd
     return {"ok": True}
 
 @router.get("/status")

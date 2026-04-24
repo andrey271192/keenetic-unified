@@ -47,7 +47,7 @@ async def check_watchdog_staleness(watchdog_status, routers):
                 if not last: continue
                 try: delta = now - datetime.fromisoformat(last)
                 except: continue
-                if delta > timedelta(minutes=15) and ws.get("state") not in ("STALE","OFFLINE","DEAD"):
+                if delta > timedelta(minutes=30) and ws.get("state") not in ("STALE","OFFLINE","DEAD"):
                     ws["state"] = "STALE"; changed = True
                     if name in routers: routers[name]["online"] = False; routers[name]["last_check"] = now.isoformat()
                     await notify(name,"WATCHDOG_STALE",f"Нет heartbeat {int(delta.total_seconds()//60)} мин",routers)

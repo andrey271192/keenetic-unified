@@ -16,7 +16,7 @@ REPO="https://raw.githubusercontent.com/andrey271192/Keenetic-Unified/main/route
 for f in watchdog.sh watchdog_heartbeat.sh hydra_update.sh send.sh; do curl -fsSL "$REPO/$f" -o "/opt/bin/$f" && chmod +x "/opt/bin/$f"; done
 CT="/tmp/cron_ku"; crontab -l 2>/dev/null | grep -v -E "(watchdog|heartbeat|hydra_update)" > "$CT" || true
 echo '*/30 * * * * /opt/bin/watchdog.sh >> /opt/var/log/watchdog.log 2>&1' >> "$CT"
-echo '*/10 * * * * /opt/bin/watchdog_heartbeat.sh >> /opt/var/log/watchdog.log 2>&1' >> "$CT"
+echo '* * * * * /opt/bin/watchdog_heartbeat.sh >> /opt/var/log/watchdog.log 2>&1' >> "$CT"
 echo '0 2 * * * /opt/bin/hydra_update.sh >> /opt/var/log/hydra_update.log 2>&1' >> "$CT"
 crontab "$CT" && rm -f "$CT"
 echo "✅ $ROUTER_NAME → $SERVER_URL"

@@ -58,11 +58,22 @@ textarea:focus{border-color:var(--accent)}
   <h1>⚙ Управление роутерами</h1>
 
   <div class="section">
+    <h2>🔑 Смена пароля</h2>
+    <div class="row">
+      <input id="new-pwd" type="password" placeholder="Новый пароль" style="width:200px">
+      <input id="new-pwd2" type="password" placeholder="Повторить" style="width:200px">
+      <button class="btn btn-b" onclick="changePwd()">💾 Сохранить</button>
+    </div>
+    <div id="pwd-msg" class="msg"></div>
+  </div>
+
+  <div class="section">
     <h2>🔔 Проверка уведомлений</h2>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Отправит тестовое сообщение в Telegram и на email — убедись что оба канала работают</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
       <button class="btn btn-b" onclick="testNotify()" id="test-btn">📨 Telegram + Email</button>
       <button class="btn" style="background:#2c2c2e;color:#f5f5f7" onclick="testSites()" id="sites-btn">🌐 Проверить сайты</button>
+      <button class="btn" style="background:#2c2c2e;color:#f5f5f7" onclick="cleanSites()" id="clean-btn">🧹 Убрать дубли сайтов</button>
     </div>
     <div id="test-msg" class="msg"></div>
     <div id="sites-log" style="display:none;background:#111;border-radius:10px;padding:12px;font-size:11px;font-family:monospace;max-height:200px;overflow-y:auto;margin-top:8px"></div>
@@ -234,7 +245,35 @@ async function sshAll(){
   btn.disabled=false; btn.textContent='▶ Выполнить';
 }
 
-function sm(id,c,t){const e=document.getElementById(id);e.className='msg '+c;e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',4000)}
+async function changePwd(){
+  const p1=document.getElementById('new-pwd').value;
+  const p2=document.getElementById('new-pwd2').value;
+  if(!p1||!p2){sm('pwd-msg','err','❌ Заполни оба поля');return;}
+  if(p1!==p2){sm('pwd-msg','err','❌ Пароли не совпадают');return;}
+  if(p1.length<4){sm('pwd-msg','err','❌ Минимум 4 символа');return;}
+  try{
+    const r=await fetch('/api/set_password',{method:'POST',headers:hdr(),body:JSON.stringify({password:p1})});
+    if(r.ok){
+      sessionStorage.setItem('ku_pass',p1);
+      sm('pwd-msg','ok','✅ Пароль сохранён — сессия обновлена');
+      document.getElementById('new-pwd').value='';
+      document.getElementById('new-pwd2').value='';
+    }else{sm('pwd-msg','err','❌ '+(await r.json()).detail);}
+  }catch(e){sm('pwd-msg','err','❌ '+e);}
+}
+
+async function cleanSites(){
+  const btn=document.getElementById('clean-btn');
+  btn.disabled=true; btn.textContent='⏳...';
+  try{
+    const r=await fetch('/api/sites/clean',{method:'POST',headers:hdr()});
+    if(r.ok) sm('test-msg','ok','✅ Дубли убраны — обнови страницу дашборда');
+    else sm('test-msg','err','❌ Ошибка');
+  }catch(e){sm('test-msg','err','❌ '+e);}
+  btn.disabled=false; btn.textContent='🧹 Убрать дубли сайтов';
+}
+
+function sm(id,c,t){const e=document.getElementById(id);e.className='msg '+c;e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',5000)}
 
 _checkAuth().then(ok=>{ if(ok) _afterLogin(); });
 </script></body></html>
