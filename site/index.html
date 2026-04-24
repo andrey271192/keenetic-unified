@@ -534,10 +534,26 @@ header{
     padding-right:max(4px, env(safe-area-inset-right, 0px));
   }
   .tab-btn{padding:10px 6px;font-size:0.7rem;gap:3px;min-height:42px;flex:1;justify-content:center;}
-  /* Скрываем плавающие элементы на мобильном — они ломают клики */
+  /* Орион скрыт — перекрывал тапы; поддержку не скрываем (иначе display:none!important ломает открытие модалки из JS) */
   .orion-container{display:none!important;}
-  .feedback-btn{display:none!important;}
-  .feedback-modal{display:none!important;}
+  .feedback-btn{
+    left:max(12px, env(safe-area-inset-left, 0px));
+    right:auto;
+    bottom:max(16px, env(safe-area-inset-bottom, 0px));
+    padding:10px 14px;
+    font-size:0.78rem;
+    z-index:3500;
+    max-width:calc(100vw - 24px);
+  }
+  .feedback-modal{
+    left:max(12px, env(safe-area-inset-left, 0px));
+    right:max(12px, env(safe-area-inset-right, 0px));
+    bottom:max(72px, calc(env(safe-area-inset-bottom, 0px) + 56px));
+    width:auto;
+    max-height:min(78vh, 520px);
+    overflow:auto;
+    z-index:3501;
+  }
   .chat-widget.minimized{display:none;}
   .chat-win{width:calc(100vw - 24px);right:12px;left:12px;bottom:12px;height:calc(100vh - 100px);max-height:none;}
   .chat-widget{right:12px;bottom:12px;left:12px;z-index:4000;}
@@ -1494,10 +1510,11 @@ renderTaxCalendar();
 const feedbackBtn=document.getElementById('feedbackBtn');
 const feedbackModal=document.getElementById('feedbackModal');
 const closeFeedbackBtn=document.getElementById('closeFeedbackBtn');
-feedbackBtn.onclick=()=>{feedbackModal.style.display='block';feedbackModal.classList.remove('minimized');if(currentTicketId){switchToChatView();}else{switchToFormView();}showExistingTicketLinkIfAny();};
-closeFeedbackBtn.onclick=()=>{feedbackModal.style.display='none';stopTicketPolling();};
-document.getElementById('fbMinimizeBtn').onclick=()=>{feedbackModal.classList.toggle('minimized');};
-window.addEventListener('click',(e)=>{if(e.target===feedbackModal)feedbackModal.style.display='none';});
+if(feedbackBtn&&feedbackModal){feedbackBtn.onclick=()=>{feedbackModal.style.display='block';feedbackModal.classList.remove('minimized');if(currentTicketId){switchToChatView();}else{switchToFormView();}showExistingTicketLinkIfAny();};}
+if(closeFeedbackBtn&&feedbackModal){closeFeedbackBtn.onclick=()=>{feedbackModal.style.display='none';stopTicketPolling();};}
+const fbMin=document.getElementById('fbMinimizeBtn');
+if(fbMin&&feedbackModal){fbMin.onclick=()=>{feedbackModal.classList.toggle('minimized');};}
+if(feedbackModal){window.addEventListener('click',(e)=>{if(e.target===feedbackModal)feedbackModal.style.display='none';});}
 
 let currentTicketId=localStorage.getItem('support_ticket_id')||null;
 let ticketLastTs=parseInt(localStorage.getItem('support_last_ts')||'0',10);
