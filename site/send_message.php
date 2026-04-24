@@ -20,6 +20,14 @@ if (!$name || strlen($phoneDigits) < 10 || !$message) {
 
 $ticketId = bin2hex(random_bytes(8));
 
+function tg_clip(string $s, int $max): string
+{
+    if (function_exists('mb_substr')) {
+        return mb_substr($s, 0, $max, 'UTF-8');
+    }
+    return strlen($s) <= $max ? $s : substr($s, 0, $max);
+}
+
 $caption  = "📬 НОВОЕ ОБРАЩЕНИЕ\n\n";
 $caption .= "🎫 Тикет: #{$ticketId}\n";
 $caption .= "👤 Имя: $name\n";
@@ -31,7 +39,9 @@ $caption .= "\n💬 Сообщение: $message";
 $caption .= "\n🕒 " . date('Y-m-d H:i:s');
 $caption .= "\n\n↩️ Ответьте на это сообщение (Reply) — ответ уйдёт пользователю на сайт.";
 
-if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+$hasFile = isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK;
+if ($hasFile) {
+    $caption = tg_clip($caption, 1000);
     $fileSize = $_FILES['attachment']['size'];
     if ($fileSize > 20 * 1024 * 1024) {
         die('file_too_large');
@@ -46,6 +56,7 @@ if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ER
     $postFields = ['chat_id' => $chatId, 'document' => $fileData, 'caption' => $caption];
     $url = "https://api.telegram.org/bot{$botToken}/sendDocument";
 } else {
+    $caption = tg_clip($caption, 4000);
     $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
     $postFields = ['chat_id' => $chatId, 'text' => $caption];
 }
@@ -57,6 +68,7 @@ curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 12);
 curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
@@ -89,30 +101,37 @@ $newTicket = [
     ],
 ];
 
-$fp = fopen($ticketsFile, 'c+');
-if (!$fp) {
-    die('save_error');
+$jsonFlags = JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+    $jsonFlags |= JSON_INVALID_UTF8_SUBSTITUTE;
 }
-if (!flock($fp, LOCK_EX)) {
-    fclose($fp);
-    die('save_error');
-}
-rewind($fp);
-$buf = stream_get_contents($fp);
-$tickets = [];
-if ($buf !== false && $buf !== '') {
-    $tickets = json_decode($buf, true) ?: [];
-}
-$tickets[$ticketId] = $newTicket;
-rewind($fp);
-ftruncate($fp, 0);
-$written = fwrite($fp, json_encode($tickets, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-fflush($fp);
-flock($fp, LOCK_UN);
-fclose($fp);
 
-if ($written === false) {
-    die('save_error');
+$saved = false;
+$fp = @fopen($ticketsFile, 'c+');
+if ($fp) {
+    if (flock($fp, LOCK_EX)) {
+        rewind($fp);
+        $buf = stream_get_contents($fp);
+        $tickets = [];
+        if ($buf !== false && $buf !== '') {
+            $tickets = json_decode($buf, true) ?: [];
+        }
+        $tickets[$ticketId] = $newTicket;
+        $payload = json_encode($tickets, $jsonFlags);
+        if ($payload !== false) {
+            rewind($fp);
+            ftruncate($fp, 0);
+            $written = fwrite($fp, $payload);
+            fflush($fp);
+            $saved = ($written !== false);
+        }
+        flock($fp, LOCK_UN);
+    }
+    fclose($fp);
+}
+
+if (!$saved) {
+    @error_log('send_message: tickets.json save failed for ' . $ticketId);
 }
 
 echo 'ok:' . $ticketId;

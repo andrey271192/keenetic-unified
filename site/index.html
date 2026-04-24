@@ -484,12 +484,12 @@ header{
 .chat-footer{text-align:center;padding:6px;font-size:0.7rem;color:var(--text3);background:#f8fafc;border-top:1px solid var(--border);}
 
 /* FEEDBACK BTN */
-.feedback-btn{position:fixed;bottom:20px;right:20px;background:#4f46e5;border-radius:40px;padding:12px 20px;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;align-items:center;gap:8px;font-weight:500;z-index:3000;animation:gentlePulse 2s ease-in-out infinite;font-family:'Onest',sans-serif;border:none;font-size:0.9rem;}
+.feedback-btn{position:fixed;bottom:20px;right:20px;background:#4f46e5;border-radius:40px;padding:12px 20px;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;align-items:center;gap:8px;font-weight:500;z-index:5000;animation:gentlePulse 2s ease-in-out infinite;font-family:'Onest',sans-serif;border:none;font-size:0.9rem;}
 @keyframes gentlePulse{0%{transform:scale(1);box-shadow:0 4px 12px rgba(0,0,0,0.2);background:#4f46e5;}50%{transform:scale(1.05);box-shadow:0 8px 24px rgba(79,70,229,0.5);background:#6366f1;}100%{transform:scale(1);box-shadow:0 4px 12px rgba(0,0,0,0.2);background:#4f46e5;}}
 .feedback-btn:hover{animation:none;transform:scale(1.02);background:#6366f1;}
 
 /* FEEDBACK MODAL */
-.feedback-modal{display:none;position:fixed;bottom:90px;right:20px;width:340px;background:white;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:3001;overflow:hidden;}
+.feedback-modal{display:none;position:fixed;bottom:90px;right:20px;width:340px;background:white;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:5001;overflow:hidden;}
 .feedback-modal.minimized .feedback-body{display:none;}
 .feedback-modal.minimized .feedback-header{border-radius:16px;}
 .feedback-header{background:#4f46e5;padding:12px 16px;color:white;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
@@ -542,7 +542,7 @@ header{
     bottom:max(16px, env(safe-area-inset-bottom, 0px));
     padding:10px 14px;
     font-size:0.78rem;
-    z-index:3500;
+    z-index:5000;
     max-width:calc(100vw - 24px);
   }
   .feedback-modal{
@@ -552,7 +552,7 @@ header{
     width:auto;
     max-height:min(78vh, 520px);
     overflow:auto;
-    z-index:3501;
+    z-index:5001;
   }
   .chat-widget.minimized{display:none;}
   .chat-win{width:calc(100vw - 24px);right:12px;left:12px;bottom:12px;height:calc(100vh - 100px);max-height:none;}
@@ -1108,13 +1108,13 @@ header{
     </div>
   </div>
   <div class="feedback-body" id="feedbackBodyForm">
-    <form id="tgForm" enctype="multipart/form-data">
-      <input type="text" id="userName" placeholder="Ваше имя" required>
-      <input type="tel" id="userPhone" placeholder="📞 Телефон (не менее 10 цифр)" required>
-      <input type="email" id="userEmail" placeholder="📧 Email (необязательно)">
+    <form id="tgForm" enctype="multipart/form-data" novalidate>
+      <input type="text" id="userName" placeholder="Ваше имя" required autocomplete="name">
+      <input type="tel" id="userPhone" placeholder="📞 Телефон (не менее 10 цифр)" required autocomplete="tel">
+      <input type="email" id="userEmail" placeholder="📧 Email (необязательно)" autocomplete="email">
       <textarea id="userMessage" rows="4" placeholder="Опишите проблему" required></textarea>
       <input type="file" id="userFile" accept="image/*,application/pdf,.zip,.txt">
-      <button type="submit">Отправить</button>
+      <button type="submit" id="tgFormSubmitBtn">Отправить</button>
       <div id="formStatus" class="feedback-status"></div>
       <div class="feedback-note">📌 Укажите телефон (10+ цифр). Можно приложить файл до 20 МБ.</div>
     </form>
@@ -1559,8 +1559,9 @@ document.getElementById('tgForm').onsubmit=async(e)=>{
   if(fileInput.files.length>0){const file=fileInput.files[0];if(file.size>20*1024*1024){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Файл >20 МБ</span>';return;}formData.append('attachment',file);}
   statusDiv.innerHTML='<span style="color:#4f46e5;">Отправка...</span>';
   try{
-    const response=await fetch('/send_message.php',{method:'POST',body:formData});
-    const text=(await response.text()).trim();
+    const response=await fetch('/send_message.php',{method:'POST',body:formData,credentials:'same-origin'});
+    const raw=await response.text();
+    const text=raw.trim();
     if(text==='ok'||text.startsWith('ok:')){
       statusDiv.innerHTML='<span style="color:#10b981;">✅ Отправлено! Ожидайте ответа оператора.</span>';
       if(text.startsWith('ok:')){currentTicketId=text.substring(3).trim();localStorage.setItem('support_ticket_id',currentTicketId);localStorage.setItem('support_last_ts','0');ticketLastTs=0;document.getElementById('tgForm').reset();setTimeout(()=>{statusDiv.innerHTML='';switchToChatView();showExistingTicketLinkIfAny();},1200);}
@@ -1570,7 +1571,8 @@ document.getElementById('tgForm').onsubmit=async(e)=>{
     else if(text==='telegram_error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Telegram отклонил отправку. Попробуйте без вложения или позже.</span>';}
     else if(text==='save_error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Не удалось сохранить тикет на сервере (права на файл). Обратитесь к администратору.</span>';}
     else if(text==='curl_error'||text==='error'){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Нет связи с Telegram. Попробуйте позже.</span>';}
-    else{statusDiv.innerHTML='<span style="color:#dc2626;">❌ Ответ сервера: '+String(text).slice(0,200)+'</span>';}
+    else if(!response.ok){statusDiv.innerHTML='<span style="color:#dc2626;">❌ HTTP '+response.status+': '+String(text).replace(/</g,'&lt;').slice(0,180)+'</span>';}
+    else{statusDiv.innerHTML='<span style="color:#dc2626;">❌ Ответ сервера: '+String(text).replace(/</g,'&lt;').slice(0,200)+'</span>';}
   }catch(err){statusDiv.innerHTML='<span style="color:#dc2626;">❌ Ошибка сети. Попробуйте позже.</span>';}
 };
 
