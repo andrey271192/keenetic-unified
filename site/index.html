@@ -551,6 +551,8 @@ header.header-hidden { transform: translateY(-100%); }
   <div class="tab-bar-inner">
     <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд</button>
     <button class="tab-btn" data-tab="files" onclick="switchTab('files')">📁 Файлы</button>
+    <button class="tab-btn" data-tab="programs" onclick="switchTab('programs')">📦 Программы</button>
+    <button class="tab-btn" data-tab="portals" onclick="switchTab('portals')">🔗 Порталы</button>
     <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">🤖 Помощник</button>
   </div>
 </nav>
@@ -739,14 +741,6 @@ header.header-hidden { transform: translateY(-100%); }
 
     <!-- ACCORDION -->
     <div class="accordion">
-      <div class="acc-item open">
-        <div class="acc-header"><span>📦 Программы и ПО</span><span class="arr">▼</span></div>
-        <div class="acc-body"><div class="acc-inner"><div class="cards-grid" id="programsContainer"></div></div></div>
-      </div>
-      <div class="acc-item">
-        <div class="acc-header"><span>🔗 Рабочие порталы</span><span class="arr">▼</span></div>
-        <div class="acc-body"><div class="acc-inner"><div class="cards-grid" id="linksContainer"></div></div></div>
-      </div>
       <div class="acc-item">
         <div class="acc-header"><span>💻 Ярлык сайта на рабочий стол (ПК)</span><span class="arr">▼</span></div>
         <div class="acc-body"><div class="acc-inner"><div class="ins-box">
@@ -860,6 +854,28 @@ header.header-hidden { transform: translateY(-100%); }
     </div>
 
   </div><!-- /tab-files -->
+
+  <!-- ========== TAB: PROGRAMS ========== -->
+  <div id="tab-programs" class="tab-section">
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h2 style="font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;">📦 Программы и ПО</h2>
+        <p style="font-size:0.82rem;color:var(--text3);margin-top:3px;">Установщики и рабочие утилиты</p>
+      </div>
+    </div>
+    <div class="cards-grid" id="programsContainer"></div>
+  </div><!-- /tab-programs -->
+
+  <!-- ========== TAB: PORTALS ========== -->
+  <div id="tab-portals" class="tab-section">
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h2 style="font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;">🔗 Рабочие порталы</h2>
+        <p style="font-size:0.82rem;color:var(--text3);margin-top:3px;">Быстрые ссылки для работы</p>
+      </div>
+    </div>
+    <div class="cards-grid" id="linksContainer"></div>
+  </div><!-- /tab-portals -->
 
   <!-- ========== TAB: ASSISTANT ========== -->
   <div id="tab-assistant" class="tab-section">
