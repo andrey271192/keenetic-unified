@@ -452,3 +452,9 @@ schtasks /delete /tn "Keenetic-CheckSites" /f
 schtasks /delete /tn "Keenetic-Speedtest" /f
 Remove-Item "$env:LOCALAPPDATA\keenetic-unified" -Recurse -Force
 ```
+
+---
+
+## Поддержка проекта
+
+Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate). На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через `.github/FUNDING.yml`).
