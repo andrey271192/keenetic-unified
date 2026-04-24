@@ -2,46 +2,53 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-require_once __DIR__ . '/google_drive_init.php';
-
-$folderName = $_GET['folder'] ?? 'Клиенты';
-$folderId   = FOLDER_IDS[$folderName] ?? null;
-
-if (!$folderId) {
+// =============================================================
+//  Local file listing (Google Drive disabled)
+// =============================================================
+$allowedFolders = ['Клиенты', 'Отчёты', 'Договоры'];
+$folderName = (string)($_GET['folder'] ?? 'Клиенты');
+if (!in_array($folderName, $allowedFolders, true)) {
     http_response_code(400);
     echo json_encode(['error' => 'Неизвестная папка: ' . $folderName]);
     exit;
 }
 
-try {
-    $client  = getGoogleDriveClient();
-    $service = new Google\Service\Drive($client);
+$folderPath = __DIR__ . '/uploads/' . $folderName;
+if (!is_dir($folderPath)) {
+    echo json_encode(['files' => []]);
+    exit;
+}
 
-    $optParams = [
-        'q'       => "'" . $folderId . "' in parents and trashed = false",
-        'fields'  => 'files(id,name,mimeType,size,modifiedTime,webViewLink)',
-        'orderBy' => 'modifiedTime desc',
-        'pageSize' => 100,
-    ];
+$entries = @scandir($folderPath);
+if (!is_array($entries)) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Не удалось прочитать папку']);
+    exit;
+}
 
-    $results = $service->files->listFiles($optParams);
-    $files   = [];
+$files = [];
+foreach ($entries as $fn) {
+    if ($fn === '.' || $fn === '..') continue;
+    $full = $folderPath . '/' . $fn;
+    if (!is_file($full)) continue;
 
-    foreach ($results->getFiles() as $file) {
-        $fileId = $file->getId();
-        $files[] = [
-            'id'           => $fileId,
-            'name'         => $file->getName(),
-            'mimeType'     => $file->getMimeType(),
-            'size'         => (int) $file->getSize(),
-            'modifiedTime' => $file->getModifiedTime(),
-            'webViewLink'  => 'https://drive.google.com/file/d/' . $fileId . '/view',
-        ];
+    $origName = $fn;
+    $parts = explode('__', $fn, 2);
+    if (count($parts) === 2 && $parts[1] !== '') {
+        $origName = $parts[1];
     }
 
-    echo json_encode(['files' => $files]);
-
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    $files[] = [
+        'id' => '/uploads/' . rawurlencode($folderName) . '/' . rawurlencode($fn),
+        'name' => $origName,
+        'mimeType' => @mime_content_type($full) ?: 'application/octet-stream',
+        'size' => (int)@filesize($full),
+        'modifiedTime' => gmdate('c', @filemtime($full) ?: time()),
+    ];
 }
+
+usort($files, function ($a, $b) {
+    return strcmp((string)($b['modifiedTime'] ?? ''), (string)($a['modifiedTime'] ?? ''));
+});
+
+echo json_encode(['files' => $files], JSON_UNESCAPED_UNICODE);

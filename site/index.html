@@ -785,7 +785,7 @@ header.header-hidden { transform: translateY(-100%); }
     <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div>
         <h2 style="font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;">📁 Файлы бухгалтерии</h2>
-        <p style="font-size:0.82rem;color:var(--text3);margin-top:3px;">Хранение в Google Drive · PIN защита при загрузке</p>
+        <p style="font-size:0.82rem;color:var(--text3);margin-top:3px;">Хранение на сервере · PIN защита при загрузке и удалении</p>
       </div>
       <div id="pinStatusBadge" style="display:none;background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:50px;padding:6px 14px;font-size:0.78rem;font-weight:600;">
         🔓 Авторизован
@@ -808,8 +808,8 @@ header.header-hidden { transform: translateY(-100%); }
           <span>📄</span><span>Договоры</span>
           <span class="fm-folder-count" id="count-Договоры">—</span>
         </div>
-        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--text3);padding-left:4px;">
-          <div>📦 Хранение: Google Drive</div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--text3);padding-left:4px;">
+          <div>📦 Хранение: сервер</div>
           <div style="margin-top:4px;">🔐 Загрузка: PIN защита</div>
         </div>
       </aside>
@@ -1753,7 +1753,7 @@ function uploadFile(file){
 
 async function deleteFile(fileId,fileName){
   if(!checkPinAuth()){showPinModal(()=>deleteFile(fileId,fileName));return;}
-  if(!confirm('Удалить файл «'+fileName+'»?\nФайл будет удалён из Google Drive.'))return;
+  if(!confirm('Удалить файл «'+fileName+'»?\nФайл будет удалён с сервера.'))return;
   try{
     const r=await fetch('/delete_file.php?id='+encodeURIComponent(fileId)+'&pin='+FILE_PIN);
     const d=await r.json();
@@ -1769,19 +1769,31 @@ async function deleteFile(fileId,fileName){
 
 // File viewer
 function viewFile(fileId,mimeType,fileName){
-  const viewLink='https://drive.google.com/file/d/'+fileId+'/view';
-  const embedLink='https://drive.google.com/file/d/'+fileId+'/preview';
-  const docsViewer='https://docs.google.com/viewer?url=https://drive.google.com/uc?id='+fileId+'&embedded=true';
+  // fileId: либо Google Drive id, либо local URL вида /uploads/<folder>/<file>
+  const isLocal = typeof fileId==='string' && (fileId.startsWith('/uploads/') || fileId.startsWith('uploads/'));
+  const origin = location.origin || '';
+  const localUrl = isLocal ? (fileId.startsWith('/') ? fileId : ('/'+fileId)) : null;
+  const absLocal = isLocal ? (origin + localUrl) : null;
+
+  const viewLink = isLocal ? localUrl : ('https://drive.google.com/file/d/'+fileId+'/view');
+  const embedLink = isLocal ? localUrl : ('https://drive.google.com/file/d/'+fileId+'/preview');
 
   document.getElementById('fvFilename').textContent=fileName;
-  document.getElementById('fvExtLink').href=viewLink;
+  const ext=document.getElementById('fvExtLink');
+  ext.href=viewLink;
+  ext.textContent=isLocal?'⬇️ Скачать':'🔗 Открыть в Drive';
+  if(isLocal){
+    ext.setAttribute('download', fileName || '');
+  }else{
+    ext.removeAttribute('download');
+  }
 
   const body=document.getElementById('fvBody');
   body.innerHTML='';
 
   if(/image/i.test(mimeType)){
     const img=document.createElement('img');
-    img.src='https://drive.google.com/uc?id='+fileId;
+    img.src=isLocal?localUrl:('https://drive.google.com/uc?id='+fileId);
     img.alt=fileName;
     body.appendChild(img);
   }else if(/pdf/i.test(mimeType)||/\.pdf$/i.test(fileName)){
@@ -1791,7 +1803,10 @@ function viewFile(fileId,mimeType,fileName){
     body.appendChild(iframe);
   }else{
     const iframe=document.createElement('iframe');
-    iframe.src='https://docs.google.com/viewer?srcid='+fileId+'&pid=explorer&efh=false&a=v&chrome=false&embedded=true';
+    // Для локальных файлов используем Google Docs Viewer по публичному URL
+    iframe.src=isLocal
+      ? ('https://docs.google.com/gview?embedded=true&url='+encodeURIComponent(absLocal))
+      : ('https://docs.google.com/viewer?srcid='+fileId+'&pid=explorer&efh=false&a=v&chrome=false&embedded=true');
     iframe.style.cssText='width:100%;height:100%;border:none;';
     body.appendChild(iframe);
   }
