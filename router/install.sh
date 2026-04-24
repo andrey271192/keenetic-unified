@@ -12,7 +12,7 @@ echo "$SERVER_URL" > /opt/etc/server_url
 [ -n "$TG_TOKEN" ] && echo "$TG_TOKEN" > /opt/etc/tg_token
 [ -n "$TG_CHAT" ] && echo "$TG_CHAT" > /opt/etc/tg_chat
 ip link show | grep -oE '(nwg|tun|wg|ovpn)[0-9]+' | sort -u > /opt/etc/vpn_list 2>/dev/null || true
-REPO="https://raw.githubusercontent.com/andrey271192/Keenetic-Unified/main/router"
+REPO="https://${GH_TOKEN:+${GH_TOKEN}@}raw.githubusercontent.com/andrey271192/Keenetic-Unified/main/router"
 for f in watchdog.sh watchdog_heartbeat.sh hydra_update.sh send.sh; do curl -fsSL "$REPO/$f" -o "/opt/bin/$f" && chmod +x "/opt/bin/$f"; done
 CT="/tmp/cron_ku"; crontab -l 2>/dev/null | grep -v -E "(watchdog|heartbeat|hydra_update)" > "$CT" || true
 echo '*/30 * * * * /opt/bin/watchdog.sh >> /opt/var/log/watchdog.log 2>&1' >> "$CT"
