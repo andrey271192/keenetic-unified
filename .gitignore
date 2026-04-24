@@ -13,3 +13,6 @@ openai-gpt-image-mcp/
 # Standalone sibling repo (separate git remote)
 Keenetic_SSH/
 domen_hydra_new/
+
+# Ephemeral mirror of github.com/andrey271192/ypr1 (do not commit)
+_ypr1_sync/
