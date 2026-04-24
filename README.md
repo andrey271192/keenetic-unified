@@ -455,6 +455,17 @@ Remove-Item "$env:LOCALAPPDATA\keenetic-unified" -Recurse -Force
 
 ---
 
+## Связанные проекты
+
+Модули, вынесенные в отдельные репозитории (можно ставить без полного Keenetic Unified):
+
+| Репозиторий | Назначение |
+|-------------|------------|
+| [domen_hydra](https://github.com/andrey271192/domen_hydra) | Только веб-управление доменами HydraRoute Neo + push на роутеры |
+| [Keenetic_SSH](https://github.com/andrey271192/Keenetic_SSH) | Только Telegram-бот и SSH на роутеры (без дашборда и мониторинга) |
+
+---
+
 ## Поддержка проекта
 
 Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate). На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через `.github/FUNDING.yml`).
