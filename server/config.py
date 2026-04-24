@@ -13,6 +13,13 @@ HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 
+# Web UI: fixed corner link «автор: @…» (unset = @Iot_andrey; пустая строка в .env = скрыть)
+_tg_author = os.getenv("AUTHOR_TELEGRAM_USERNAME")
+if _tg_author is None:
+    AUTHOR_TELEGRAM_USERNAME = "Iot_andrey"
+else:
+    AUTHOR_TELEGRAM_USERNAME = _tg_author.strip().lstrip("@")
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
