@@ -210,14 +210,28 @@ async function testSites(){
 
 async function testNotify(){
   const btn=document.getElementById('test-btn');
-  btn.disabled=true; btn.textContent='⏳ Отправляю...';
+  const log=document.getElementById('sites-log');
+  btn.disabled=true; btn.textContent='⏳ Проверяю...';
+  log.style.display='block'; log.innerHTML='<span style="color:#86868b">Проверяю SMTP...</span>\n';
   try{
     const j=await(await fetch('/api/test_notify',{method:'POST',headers:{'X-Admin-Password':getPass()}})).json();
-    const tg=j.telegram?'✅ Telegram':'❌ Telegram';
-    const em=j.email?`✅ Email → ${j.email_to}`:`❌ Email: ${j.email_error||'ошибка'}`;
-    sm('test-msg', j.telegram&&j.email?'ok':'err', `${tg}\n${em}`);
-  }catch(e){sm('test-msg','err','❌ '+e);}
-  btn.disabled=false; btn.textContent='📨 Отправить тест';
+    log.innerHTML='';
+    log.innerHTML+=`<div style="margin-bottom:6px">${j.telegram?'✅':'❌'} <b>Telegram</b></div>`;
+    log.innerHTML+=`<div style="margin-bottom:4px;color:#86868b">SMTP: ${j.smtp_host}:${j.smtp_port}</div>`;
+    log.innerHTML+=`<div style="margin-bottom:4px;color:#86868b">From: ${j.smtp_user}  →  To: ${j.smtp_to}</div>`;
+    for(const s of (j.steps||[])){
+      const ok=!s.startsWith('ОШИБКА');
+      log.innerHTML+=`<div style="color:${ok?'#30d158':'#ff453a'};margin-top:2px">${ok?'✅':'❌'} ${s}</div>`;
+    }
+    if(!j.email){
+      log.innerHTML+=`<div style="margin-top:10px;padding:8px;background:#2c1010;border-radius:6px;color:#ff9f0a;font-size:11px">
+💡 <b>Gmail:</b> нужен <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#0a84ff">App Password</a> — обычный пароль не работает.<br>
+Сгенерируй 16-значный пароль и вставь его в <code>server/.env</code> как <code>SMTP_PASS=...</code>
+</div>`;
+    }
+    sm('test-msg', j.email?'ok':'err', j.email?'✅ Письмо отправлено':'❌ Email не работает — см. детали выше');
+  }catch(e){log.innerHTML='❌ '+e; sm('test-msg','err','❌ '+e);}
+  btn.disabled=false; btn.textContent='📨 Telegram + Email';
 }
 
 function quickSSH(cmd){ document.getElementById('ssh-cmd').value=cmd; sshAll(); }

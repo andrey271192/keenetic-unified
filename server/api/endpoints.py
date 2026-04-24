@@ -19,18 +19,52 @@ async def auth_check(x_admin_password: str = Header("")):
 @router.post("/test_notify")
 async def test_notify(x_admin_password: str = Header("")):
     _chk(x_admin_password)
-    import asyncio
-    from ..services.notifier import send_telegram, _email
+    import asyncio, smtplib
+    from ..services.notifier import send_telegram
+
     await send_telegram("🔔 <b>Тест уведомлений</b>\n✅ Telegram работает!\nПроверяю email...")
-    email_ok = True; email_err = ""
+
+    # Step-by-step SMTP diagnostics
+    steps = []
+    email_ok = False
     try:
-        await asyncio.to_thread(_email,
-            "Keenetic Unified — тест уведомлений",
-            "<h2>✅ Email уведомления работают!</h2><p>Тестовое письмо от Keenetic Unified.</p>"
-        )
+        if not config.SMTP_USER:
+            raise ValueError("SMTP_USER не задан в .env")
+        steps.append(f"host={config.SMTP_HOST}:{config.SMTP_PORT}")
+        steps.append(f"from={config.SMTP_USER}")
+        steps.append(f"to={config.SMTP_TO}")
+
+        def _do_send():
+            import smtplib
+            from email.mime.text import MIMEText
+            m = MIMEText("<h2>✅ Email работает!</h2><p>Тест от Keenetic Unified.</p>", "html")
+            m["Subject"] = "Keenetic Unified — тест уведомлений"
+            m["From"] = config.SMTP_USER
+            m["To"] = config.SMTP_TO
+            with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT, timeout=15) as s:
+                steps.append("SMTP соединение: OK")
+                s.ehlo()
+                s.starttls()
+                steps.append("STARTTLS: OK")
+                s.login(config.SMTP_USER, config.SMTP_PASS)
+                steps.append("LOGIN: OK")
+                s.send_message(m)
+                steps.append(f"Письмо отправлено → {config.SMTP_TO}")
+
+        await asyncio.to_thread(_do_send)
+        email_ok = True
     except Exception as e:
-        email_ok = False; email_err = str(e)
-    return {"telegram": True, "email": email_ok, "email_error": email_err, "email_to": config.SMTP_TO}
+        steps.append(f"ОШИБКА: {e}")
+
+    return {
+        "telegram": True,
+        "email": email_ok,
+        "steps": steps,
+        "smtp_host": config.SMTP_HOST,
+        "smtp_port": config.SMTP_PORT,
+        "smtp_user": config.SMTP_USER,
+        "smtp_to": config.SMTP_TO,
+    }
 
 @router.post("/test_sites")
 async def test_sites(request: Request, x_admin_password: str = Header("")):
