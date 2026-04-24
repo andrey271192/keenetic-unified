@@ -9,3 +9,7 @@ server/data/
 # Env files (keep example committed)
 server/.env
 openai-gpt-image-mcp/
+
+# Standalone sibling repo (separate git remote)
+Keenetic_SSH/
+domen_hydra_new/
