@@ -22,6 +22,11 @@ input:focus{border-color:var(--accent)}input::placeholder{color:var(--muted)}
 .btn-b{background:var(--accent);color:#fff}.btn-r{background:var(--red);color:#fff}.btn-g{background:var(--green);color:#fff}
 .ri{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;display:flex;justify-content:space-between;font-weight:500}
 .ri:last-child{border:none}.ri .n{font-weight:700;color:var(--accent)}.ri .u{color:var(--muted);font-size:11px}
+.admin-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.admin-tools input[type=search]{flex:1;min-width:200px;max-width:400px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none}
+.admin-tools input[type=search]:focus{border-color:var(--accent)}
+.admin-tools .hint{font-size:11px;color:var(--muted)}
+.list-scroll{max-height:min(55vh,520px);overflow-y:auto;border-radius:10px;border:1px solid rgba(255,255,255,.06)}
 textarea{width:100%;min-height:180px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-size:13px;font-family:monospace;outline:none;resize:vertical}
 textarea:focus{border-color:var(--accent)}
 .msg{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;margin-top:8px;display:none}
@@ -112,7 +117,13 @@ textarea:focus{border-color:var(--accent)}
     <div id="ssh-log" style="display:none;background:#111;border-radius:10px;padding:14px;font-size:11px;font-family:monospace;max-height:320px;overflow-y:auto;margin-top:8px"></div>
     <div id="ssm" class="msg"></div>
   </div>
-  <div class="section"><h2>📋 Зарегистрированные роутеры</h2><div id="list">...</div></div>
+  <div class="section"><h2>📋 Зарегистрированные роутеры</h2>
+    <div class="admin-tools">
+      <input type="search" id="admin-q" placeholder="Поиск по имени, IP, ссылке…" autocomplete="off">
+      <span class="hint" id="admin-hint"></span>
+    </div>
+    <div class="list-scroll"><div id="list">...</div></div>
+  </div>
   <div class="section"><h2>✏️ Отображаемые имена</h2>
     <p style="font-size:12px;color:var(--muted);margin-bottom:10px">имя: Красивое название (по одному на строку)</p>
     <textarea id="map"></textarea>
@@ -142,17 +153,39 @@ async function _doLogin(){
   btn.textContent='Войти'; btn.disabled=false;
 }
 function logout(){ sessionStorage.removeItem('ku_pass'); _showLogin(); }
-function _afterLogin(){ loadR(); }
+function _afterLogin(){ _initAdminSearch(); loadR(); }
+
+let _adminRouters=null;
+function _initAdminSearch(){
+  const q=document.getElementById('admin-q');
+  if(!q||q.dataset.inited==='1') return;
+  q.dataset.inited='1';
+  q.value=sessionStorage.getItem('ku_admin_q')||'';
+  q.addEventListener('input',()=>{ sessionStorage.setItem('ku_admin_q',q.value); if(_adminRouters) paintAdminList(_adminRouters); });
+}
+function paintAdminList(r){
+  const q=(document.getElementById('admin-q')?.value||'').trim().toLowerCase();
+  let pairs=Object.entries(r);
+  if(q) pairs=pairs.filter(([n,c])=>[n,c.display_name||'',c.web_url||'',c.ip||''].join(' ').toLowerCase().includes(q));
+  pairs.sort((a,b)=>a[0].localeCompare(b[0],'ru'));
+  const hint=document.getElementById('admin-hint');
+  const total=Object.keys(r).length;
+  if(hint) hint.textContent=pairs.length===total?`${total} шт.`:`Показано ${pairs.length} из ${total}`;
+  let h='';
+  for(const[n,c]of pairs){
+    h+=`<div class="ri"><span><span class="n">${n}</span> — ${c.display_name||n}</span><span class="u">${c.web_url||c.ip||''}</span></div>`;
+  }
+  document.getElementById('list').innerHTML=h||'<span style="color:var(--muted)">'+(total?'Нет совпадений по поиску':'Нет роутеров')+'</span>';
+}
 
 // ── ADMIN ─────────────────────────────────────────────────────────────────
 async function loadR(){
-  const r=await(await fetch('/api/routers')).json();
-  let h='',m=[];
-  for(const[n,c]of Object.entries(r)){
-    h+=`<div class="ri"><span><span class="n">${n}</span> — ${c.display_name||n}</span><span class="u">${c.web_url||c.ip||''}</span></div>`;
+  _adminRouters=await(await fetch('/api/routers')).json();
+  paintAdminList(_adminRouters);
+  const m=[];
+  for(const[n,c]of Object.entries(_adminRouters)){
     if(c.display_name) m.push(`${n}: ${c.display_name}`);
   }
-  document.getElementById('list').innerHTML=h||'<span style="color:var(--muted)">Нет роутеров</span>';
   document.getElementById('map').value=m.join('\n');
 }
 
