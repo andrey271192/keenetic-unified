@@ -18,6 +18,7 @@ CT="/tmp/cron_ku"; crontab -l 2>/dev/null | grep -v -E "(watchdog|heartbeat|hydr
 echo '*/30 * * * * /opt/bin/watchdog.sh >> /opt/var/log/watchdog.log 2>&1' >> "$CT"
 echo '* * * * * /opt/bin/watchdog_heartbeat.sh >> /opt/var/log/watchdog.log 2>&1' >> "$CT"
 echo '0 2 * * * /opt/bin/hydra_update.sh >> /opt/var/log/hydra_update.log 2>&1' >> "$CT"
+echo '0 */6 * * * opkg dns-override && killall -HUP dnsmasq' >> "$CT"
 crontab "$CT" && rm -f "$CT"
 echo "✅ $ROUTER_NAME → $SERVER_URL"
 /opt/bin/send.sh "INSTALL" "Установка завершена: $ROUTER_NAME"
