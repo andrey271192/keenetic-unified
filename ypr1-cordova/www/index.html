@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e27">
+<title>ЦБ МО | Управление №1</title>
+<link rel="manifest" href="/app/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e27;
+  --bg2: #111640;
+  --bg3: #181e52;
+  --card: rgba(22, 28, 72, 0.85);
+  --card-border: rgba(99, 115, 255, 0.15);
+  --accent: #6C7BFF;
+  --accent2: #4ECDC4;
+  --accent3: #FF6B9D;
+  --text: #e8eaff;
+  --text2: #9399cc;
+  --text3: #636999;
+  --success: #4ECDC4;
+  --warning: #FFD166;
+  --danger: #FF6B6B;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+*{ margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent;}
+
+body {
+font-family: 'Nunito', sans-serif;
+background: var(-bg);
+color: var(-text);
+min-height: 100vh;
+min-height: 100dvh;
+overflow-x: hidden;
+padding-bottom: 90px;
+}
+
+/* === ANIMATED BG === */
+.bg-orbs {
+position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-orbs::before, .bg-orbs::after {
+content: ''; position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3;
+}
+.bg-orbs::before {
+width: 300px; height: 300px; background: var(-accent); top: -80px; right: -60px;
+animation: orbFloat 12s ease-in-out infinite alternate;
+}
+.bg-orbs::after {
+width: 250px; height: 250px; background: var(-accent3); bottom: 100px; left: -80px;
+animation: orbFloat 15s ease-in-out infinite alternate-reverse;
+}
+@keyframes orbFloat {
+0% { transform: translate(0, 0) scale(1); }
+100% { transform: translate(30px, -40px) scale(1.15); }
+}
+
+/* === HEADER === */
+.header {
+position: sticky; top: 0; z-index: 100;
+background: rgba(10, 14, 39, 0.88);
+backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+border-bottom: 1px solid var(-card-border);
+padding: 14px 20px;
+display: flex; align-items: center; gap: 14px;
+}
+.header-logo {
+width: 44px; height: 44px; border-radius: 14px;
+background: linear-gradient(135deg, var(-accent), var(-accent2));
+display: flex; align-items: center; justify-content: center;
+font-size: 20px; font-weight: 900; color: #fff;
+box-shadow: 0 4px 16px rgba(108, 123, 255, 0.35);
+flex-shrink: 0;
+}
+.header-info { flex: 1; min-width: 0; }
+.header-title { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+.header-sub { font-size: 12px; color: var(-text2); font-weight: 600; }
+.header-time {
+font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;
+color: var(-accent2); letter-spacing: 0.5px;
+}
+
+/* === MAIN CONTENT === */
+.content { position: relative; z-index: 1; padding: 16px; }
+
+/* === GREETING === */
+.greeting {
+padding: 20px 0 10px;
+animation: fadeSlideUp 0.5s ease;
+}
+.greeting h2 {
+font-size: 26px; font-weight: 900; letter-spacing: -0.5px;
+background: linear-gradient(135deg, var(-text), var(-accent2));
+-webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.greeting p { font-size: 14px; color: var(-text2); margin-top: 4px; }
+
+/* === CARDS === */
+.card {
+background: var(-card);
+border: 1px solid var(-card-border);
+border-radius: var(-radius);
+padding: 20px;
+margin-bottom: 14px;
+backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+box-shadow: var(-shadow);
+animation: fadeSlideUp 0.5s ease both;
+}
+.card:nth-child(2) { animation-delay: 0.05s; }
+.card:nth-child(3) { animation-delay: 0.1s; }
+.card:nth-child(4) { animation-delay: 0.15s; }
+
+.card-header {
+display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.card-icon {
+width: 42px; height: 42px; border-radius: 13px;
+display: flex; align-items: center; justify-content: center; font-size: 20px;
+flex-shrink: 0;
+}
+.card-icon.blue { background: rgba(108,123,255,0.15); }
+.card-icon.green { background: rgba(78,205,196,0.15); }
+.card-icon.pink { background: rgba(255,107,157,0.15); }
+.card-icon.yellow { background: rgba(255,209,102,0.15); }
+.card-title { font-size: 17px; font-weight: 800; }
+.card-subtitle { font-size: 12px; color: var(-text2); }
+
+/* === QUICK ACTIONS GRID === */
+.quick-grid {
+display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+margin-bottom: 14px;
+}
+.quick-btn {
+background: var(-card);
+border: 1px solid var(-card-border);
+border-radius: var(-radius-sm);
+padding: 18px 14px;
+display: flex; flex-direction: column; align-items: center; gap: 10px;
+cursor: pointer; transition: all 0.25s ease;
+text-decoration: none; color: var(-text);
+}
+.quick-btn:active {
+transform: scale(0.96);
+background: var(-bg3);
+border-color: var(-accent);
+}
+.quick-btn .qicon {
+width: 48px; height: 48px; border-radius: 14px;
+display: flex; align-items: center; justify-content: center;
+font-size: 24px;
+}
+.quick-btn span { font-size: 13px; font-weight: 700; text-align: center; line-height: 1.3; }
+
+/* === CALCULATOR === */
+.calc-group { margin-bottom: 14px; }
+.calc-label { font-size: 13px; color: var(-text2); font-weight: 600; margin-bottom: 6px; }
+.calc-input {
+width: 100%; padding: 14px 16px;
+background: var(-bg); border: 1px solid var(-card-border); border-radius: var(-radius-sm);
+color: var(-text); font-family: 'JetBrains Mono', monospace; font-size: 16px;
+outline: none; transition: border-color 0.2s;
+}
+.calc-input:focus { border-color: var(-accent); }
+
+.rate-pills {
+display: flex; gap: 8px; flex-wrap: wrap;
+}
+.rate-pill {
+padding: 10px 18px; border-radius: 30px;
+background: var(-bg); border: 1px solid var(-card-border);
+color: var(-text2); font-size: 14px; font-weight: 700;
+cursor: pointer; transition: all 0.2s;
+}
+.rate-pill.active {
+background: var(-accent); border-color: var(-accent); color: #fff;
+box-shadow: 0 4px 16px rgba(108,123,255,0.35);
+}
+.rate-pill:active { transform: scale(0.95); }
+
+.calc-type-btns { display: flex; gap: 8px; }
+.calc-type-btn {
+flex: 1; padding: 12px; border-radius: var(-radius-sm);
+background: var(-bg); border: 1px solid var(-card-border);
+color: var(-text2); font-size: 13px; font-weight: 700;
+cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.calc-type-btn.active {
+background: rgba(78,205,196,0.15); border-color: var(-accent2); color: var(-accent2);
+}
+
+.result-box {
+background: linear-gradient(135deg, rgba(108,123,255,0.1), rgba(78,205,196,0.1));
+border: 1px solid rgba(108,123,255,0.2);
+border-radius: var(-radius-sm);
+padding: 18px; text-align: center; margin-top: 16px;
+}
+.result-label { font-size: 12px; color: var(-text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.result-value {
+font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700;
+color: var(-accent2); margin: 6px 0;
+}
+.result-sub { font-size: 13px; color: var(-text2); }
+
+/* === PORTAL LINKS === */
+.portal-list { display: flex; flex-direction: column; gap: 10px; }
+.portal-link {
+display: flex; align-items: center; gap: 14px;
+padding: 14px 16px;
+background: var(-bg); border: 1px solid var(-card-border); border-radius: var(-radius-sm);
+cursor: pointer; transition: all 0.2s; text-decoration: none; color: var(-text);
+}
+.portal-link:active {
+background: var(-bg3); border-color: var(-accent); transform: scale(0.98);
+}
+.portal-link .picon {
+width: 40px; height: 40px; border-radius: 12px;
+display: flex; align-items: center; justify-content: center; font-size: 20px;
+flex-shrink: 0;
+}
+.portal-link .ptext { flex: 1; }
+.portal-link .pname { font-size: 15px; font-weight: 700; }
+.portal-link .pdesc { font-size: 12px; color: var(-text3); }
+.portal-link .arrow { color: var(-text3); font-size: 18px; }
+
+/* === TIPS === */
+.tips-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.tips-scroll::-webkit-scrollbar { display: none; }
+.tip-chip {
+flex-shrink: 0; scroll-snap-align: start;
+padding: 10px 18px; border-radius: 30px;
+background: rgba(108,123,255,0.12); border: 1px solid rgba(108,123,255,0.2);
+color: var(-accent); font-size: 13px; font-weight: 700;
+white-space: nowrap; cursor: pointer; transition: all 0.2s;
+}
+.tip-chip:active { background: var(-accent); color: #fff; }
+
+/* === CHAT WIDGET === */
+.chat-fab {
+position: fixed; bottom: 96px; right: 20px; z-index: 200;
+width: 58px; height: 58px; border-radius: 50%;
+background: linear-gradient(135deg, var(-accent), var(-accent2));
+display: flex; align-items: center; justify-content: center;
+font-size: 26px; color: #fff; cursor: pointer;
+box-shadow: 0 6px 24px rgba(108,123,255,0.45);
+transition: transform 0.3s ease;
+animation: fabPulse 3s ease-in-out infinite;
+}
+.chat-fab:active { transform: scale(0.9); }
+@keyframes fabPulse {
+0%, 100% { box-shadow: 0 6px 24px rgba(108,123,255,0.45); }
+50% { box-shadow: 0 6px 32px rgba(108,123,255,0.7), 0 0 0 8px rgba(108,123,255,0.1); }
+}
+
+.chat-panel {
+position: fixed; inset: 0; z-index: 300;
+background: var(-bg);
+transform: translateY(100%);
+transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+display: flex; flex-direction: column;
+}
+.chat-panel.open { transform: translateY(0); }
+
+.chat-header {
+padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+border-bottom: 1px solid var(-card-border);
+background: rgba(10,14,39,0.95); backdrop-filter: blur(20px);
+}
+.chat-avatar {
+width: 42px; height: 42px; border-radius: 50%;
+background: linear-gradient(135deg, var(-accent), var(-accent2));
+display: flex; align-items: center; justify-content: center;
+font-size: 20px;
+}
+.chat-header-info { flex: 1; }
+.chat-header-name { font-size: 16px; font-weight: 800; }
+.chat-header-status { font-size: 12px; color: var(-accent2); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.chat-header-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(-accent2); }
+.chat-close {
+width: 38px; height: 38px; border-radius: 50%;
+background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;
+font-size: 20px; color: var(-text2); cursor: pointer;
+}
+
+.chat-body {
+flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px;
+}
+.chat-bubble {
+max-width: 85%; padding: 14px 18px;
+font-size: 14px; line-height: 1.55; font-weight: 600;
+animation: fadeSlideUp 0.3s ease;
+}
+.chat-bubble.bot {
+background: var(-card); border: 1px solid var(-card-border);
+border-radius: 18px 18px 18px 4px; align-self: flex-start;
+}
+.chat-bubble.user {
+background: linear-gradient(135deg, var(-accent), #5a6bff);
+border-radius: 18px 18px 4px 18px; align-self: flex-end; color: #fff;
+}
+
+.chat-input-bar {
+padding: 14px 16px; display: flex; gap: 10px; align-items: center;
+border-top: 1px solid var(-card-border);
+background: rgba(10,14,39,0.95); backdrop-filter: blur(20px);
+}
+.chat-input {
+flex: 1; padding: 14px 18px;
+background: var(-bg3); border: 1px solid var(-card-border); border-radius: 30px;
+color: var(-text); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 600;
+outline: none;
+}
+.chat-input::placeholder { color: var(-text3); }
+.chat-send {
+width: 46px; height: 46px; border-radius: 50%;
+background: linear-gradient(135deg, var(-accent), var(-accent2));
+display: flex; align-items: center; justify-content: center;
+font-size: 20px; color: #fff; cursor: pointer; flex-shrink: 0;
+transition: transform 0.2s;
+}
+.chat-send:active { transform: scale(0.9); }
+
+/* === BOTTOM NAV === */
+.bottom-nav {
+position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+background: rgba(10, 14, 39, 0.92);
+backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+border-top: 1px solid var(-card-border);
+display: flex; justify-content: space-around; align-items: center;
+padding: 8px 0 env(safe-area-inset-bottom, 8px);
+height: 70px;
+}
+.nav-item {
+display: flex; flex-direction: column; align-items: center; gap: 3px;
+cursor: pointer; padding: 6px 12px; transition: all 0.2s;
+color: var(-text3);
+}
+.nav-item.active { color: var(-accent); }
+.nav-item .nav-icon { font-size: 24px; transition: transform 0.2s; }
+.nav-item.active .nav-icon { transform: translateY(-2px); }
+.nav-item span { font-size: 11px; font-weight: 700; }
+.nav-item.active span { color: var(-accent); }
+.nav-dot {
+width: 4px; height: 4px; border-radius: 50%;
+background: var(-accent); opacity: 0; transition: opacity 0.2s;
+}
+.nav-item.active .nav-dot { opacity: 1; }
+
+/* === SECTIONS === */
+.section { display: none; }
+.section.active { display: block; }
+
+/* === ANIMATIONS === */
+@keyframes fadeSlideUp {
+from { opacity: 0; transform: translateY(16px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* === HOLIDAY BANNER === */
+.holiday-banner {
+background: linear-gradient(135deg, rgba(255,209,102,0.12), rgba(255,107,157,0.12));
+border: 1px solid rgba(255,209,102,0.2);
+border-radius: var(-radius);
+padding: 16px 18px;
+margin-bottom: 14px;
+display: flex; align-items: center; gap: 14px;
+animation: fadeSlideUp 0.5s ease both;
+}
+.holiday-banner .hemoji { font-size: 32px; }
+.holiday-banner .htext { font-size: 14px; font-weight: 700; line-height: 1.4; }
+.holiday-banner .hdate { font-size: 12px; color: var(-text2); }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(-card-border); border-radius: 3px; }
+</style>
+
+</head>
+<body>
+
+<div class="bg-orbs"></div>
+
+<!-- HEADER -->
+
+<div class="header">
+  <div class="header-logo">У1</div>
+  <div class="header-info">
+    <div class="header-title">ЦБ МО | Управление №1</div>
+    <div class="header-sub">Централизованная бухгалтерия</div>
+  </div>
+  <div class="header-time" id="clock">--:--</div>
+</div>
+
+<!-- CONTENT -->
+
+<div class="content">
+
+  <!-- === DASHBOARD === -->
+
+  <div class="section active" id="sec-dashboard">
+    <div class="greeting">
+      <h2 id="greetText">Добро пожаловать!</h2>
+      <p>Техподдержка и бухгалтерский помощник</p>
+    </div>
+
+
+<div class="holiday-banner" id="holidayBanner" style="display:none">
+  <div class="hemoji" id="holidayEmoji">🎉</div>
+  <div>
+    <div class="htext" id="holidayName">-</div>
+    <div class="hdate" id="holidayDate">-</div>
+  </div>
+</div>
+
+<div class="quick-grid">
+  <div class="quick-btn" onclick="switchTab('calc')">
+    <div class="qicon" style="background:rgba(108,123,255,0.15)">🧮</div>
+    <span>Калькулятор НДС</span>
+  </div>
+  <div class="quick-btn" onclick="switchTab('calc'); setTimeout(()=>showCalc('ndfl'),100)">
+    <div class="qicon" style="background:rgba(78,205,196,0.15)">📊</div>
+    <span>НДФЛ</span>
+  </div>
+  <div class="quick-btn" onclick="switchTab('portals')">
+    <div class="qicon" style="background:rgba(255,107,157,0.15)">🔗</div>
+    <span>Порталы</span>
+  </div>
+  <div class="quick-btn" onclick="openChat()">
+    <div class="qicon" style="background:rgba(255,209,102,0.15)">🤖</div>
+    <span>Орион 2.0</span>
+  </div>
+</div>
+
+<div class="card" style="animation-delay:0.1s">
+  <div class="card-header">
+    <div class="card-icon blue">💡</div>
+    <div>
+      <div class="card-title">Быстрые вопросы</div>
+      <div class="card-subtitle">Популярные темы бухгалтерии</div>
+    </div>
+  </div>
+  <div class="tips-scroll">
+    <div class="tip-chip" onclick="askOrion('Изменения НДС 2025')">📌 НДС 2025</div>
+    <div class="tip-chip" onclick="askOrion('Сроки ЕФС-1')">📌 Сроки ЕФС-1</div>
+    <div class="tip-chip" onclick="askOrion('Расчёт НДФЛ')">📌 НДФЛ</div>
+    <div class="tip-chip" onclick="askOrion('Проводки зарплата')">📌 Проводки</div>
+    <div class="tip-chip" onclick="askOrion('Лимиты страховых взносов')">📌 Лимиты</div>
+    <div class="tip-chip" onclick="askOrion('Что такое ЕНС')">📌 ЕНС</div>
+  </div>
+</div>
+
+<div class="card" style="animation-delay:0.15s">
+  <div class="card-header">
+    <div class="card-icon green">💱</div>
+    <div>
+      <div class="card-title">Курсы ЦБ РФ</div>
+      <div class="card-subtitle" id="rateDate">загрузка...</div>
+    </div>
+  </div>
+  <div id="ratesContainer" style="display:flex;gap:10px;flex-wrap:wrap;">
+    <div class="rate-card" style="flex:1;min-width:120px;background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:14px;text-align:center;">
+      <div style="font-size:12px;color:var(--text3);font-weight:600;">🇺🇸 USD</div>
+      <div style="font-family:'JetBrains Mono';font-size:20px;font-weight:700;color:var(--accent2);margin:4px 0;" id="rateUSD">-</div>
+    </div>
+    <div class="rate-card" style="flex:1;min-width:120px;background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:14px;text-align:center;">
+      <div style="font-size:12px;color:var(--text3);font-weight:600;">🇪🇺 EUR</div>
+      <div style="font-family:'JetBrains Mono';font-size:20px;font-weight:700;color:var(--accent2);margin:4px 0;" id="rateEUR">-</div>
+    </div>
+    <div class="rate-card" style="flex:1;min-width:120px;background:var(--bg);border:1px solid var(--card-border);border-radius:12px;padding:14px;text-align:center;">
+      <div style="font-size:12px;color:var(--text3);font-weight:600;">🇨🇳 CNY</div>
+      <div style="font-family:'JetBrains Mono';font-size:20px;font-weight:700;color:var(--accent2);margin:4px 0;" id="rateCNY">-</div>
+    </div>
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- === CALCULATORS === -->
+
+  <div class="section" id="sec-calc">
+    <div class="greeting">
+      <h2>Калькуляторы</h2>
+      <p>Быстрые расчёты для бухгалтера</p>
+    </div>
+
+
+<!-- Calc tabs -->
+<div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;" class="tips-scroll">
+  <div class="tip-chip active" onclick="showCalc('nds')" id="tab-nds" style="background:var(--accent);color:#fff;">НДС</div>
+  <div class="tip-chip" onclick="showCalc('ndfl')" id="tab-ndfl">НДФЛ</div>
+  <div class="tip-chip" onclick="showCalc('insurance')" id="tab-insurance">Взносы</div>
+  <div class="tip-chip" onclick="showCalc('profit')" id="tab-profit">Прибыль</div>
+</div>
+
+<!-- NDS Calc -->
+<div class="card" id="calc-nds">
+  <div class="card-header">
+    <div class="card-icon blue">🧮</div>
+    <div><div class="card-title">Калькулятор НДС</div></div>
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Сумма (руб.)</div>
+    <input class="calc-input" type="number" id="ndsSum" placeholder="0.00" oninput="calcNDS()">
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Ставка НДС</div>
+    <div class="rate-pills" id="ndsRates">
+      <div class="rate-pill active" onclick="setNdsRate(22)">22%</div>
+      <div class="rate-pill" onclick="setNdsRate(20)">20%</div>
+      <div class="rate-pill" onclick="setNdsRate(10)">10%</div>
+      <div class="rate-pill" onclick="setNdsRate(5)">5%</div>
+    </div>
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Тип расчёта</div>
+    <div class="calc-type-btns">
+      <div class="calc-type-btn active" onclick="setNdsType('add')" id="ndsTypeAdd">Начислить (+)</div>
+      <div class="calc-type-btn" onclick="setNdsType('extract')" id="ndsTypeExtract">Выделить (в т.ч.)</div>
+    </div>
+  </div>
+  <div class="result-box">
+    <div class="result-label">НДС к уплате</div>
+    <div class="result-value" id="ndsResult">0,00 ₽</div>
+    <div class="result-sub" id="ndsTotal">Итого: 0,00 ₽</div>
+  </div>
+</div>
+
+<!-- NDFL Calc -->
+<div class="card" id="calc-ndfl" style="display:none">
+  <div class="card-header">
+    <div class="card-icon green">📊</div>
+    <div><div class="card-title">Калькулятор НДФЛ</div></div>
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Зарплата gross (руб.)</div>
+    <input class="calc-input" type="number" id="ndflSum" placeholder="0.00" oninput="calcNDFL()">
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Ставка НДФЛ</div>
+    <div class="rate-pills" id="ndflRates">
+      <div class="rate-pill active" onclick="setNdflRate(13)">13%</div>
+      <div class="rate-pill" onclick="setNdflRate(15)">15%</div>
+    </div>
+  </div>
+  <div class="result-box">
+    <div class="result-label">НДФЛ</div>
+    <div class="result-value" id="ndflResult">0,00 ₽</div>
+    <div class="result-sub" id="ndflNet">На руки: 0,00 ₽</div>
+  </div>
+</div>
+
+<!-- Insurance Calc -->
+<div class="card" id="calc-insurance" style="display:none">
+  <div class="card-header">
+    <div class="card-icon pink">🧾</div>
+    <div><div class="card-title">Страховые взносы</div></div>
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Сумма (руб.)</div>
+    <input class="calc-input" type="number" id="insSum" placeholder="0.00" oninput="calcIns()">
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Ставка</div>
+    <div class="rate-pills" id="insRates">
+      <div class="rate-pill active" onclick="setInsRate(30)">30%</div>
+      <div class="rate-pill" onclick="setInsRate(15)">15%</div>
+    </div>
+  </div>
+  <div class="result-box">
+    <div class="result-label">Страховые взносы</div>
+    <div class="result-value" id="insResult">0,00 ₽</div>
+    <div class="result-sub" id="insTotal">Нагрузка: 0,00 ₽</div>
+  </div>
+</div>
+
+<!-- Profit Calc -->
+<div class="card" id="calc-profit" style="display:none">
+  <div class="card-header">
+    <div class="card-icon yellow">💰</div>
+    <div><div class="card-title">Прибыль и маржа</div></div>
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Выручка (руб.)</div>
+    <input class="calc-input" type="number" id="profitRev" placeholder="0.00" oninput="calcProfit()">
+  </div>
+  <div class="calc-group">
+    <div class="calc-label">Расходы (руб.)</div>
+    <input class="calc-input" type="number" id="profitExp" placeholder="0.00" oninput="calcProfit()">
+  </div>
+  <div class="result-box">
+    <div class="result-label">Прибыль</div>
+    <div class="result-value" id="profitResult">0,00 ₽</div>
+    <div class="result-sub" id="profitMargin">Маржа: 0,00 %</div>
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- === PORTALS === -->
+
+  <div class="section" id="sec-portals">
+    <div class="greeting">
+      <h2>Рабочие порталы</h2>
+      <p>Быстрые ссылки для работы</p>
+    </div>
+
+
+<div class="portal-list">
+  <a class="portal-link" href="https://ypr1.ru" target="_blank">
+    <div class="picon" style="background:rgba(108,123,255,0.15)">🌐</div>
+    <div class="ptext"><div class="pname">Основной сайт</div><div class="pdesc">ypr1.ru</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-link" href="#" onclick="event.preventDefault(); alert('Перейдите на ypr1.ru для доступа к файлам')">
+    <div class="picon" style="background:rgba(78,205,196,0.15)">📁</div>
+    <div class="ptext"><div class="pname">Файлы бухгалтерии</div><div class="pdesc">Хранение · PIN защита</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-link" href="#" onclick="event.preventDefault(); alert('Перейдите на ypr1.ru для скачивания ПО')">
+    <div class="picon" style="background:rgba(255,107,157,0.15)">📦</div>
+    <div class="ptext"><div class="pname">Программы и ПО</div><div class="pdesc">Установщики · Утилиты</div></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-link" href="mailto:support@ypr1.ru">
+    <div class="picon" style="background:rgba(255,209,102,0.15)">📧</div>
+    <div class="ptext"><div class="pname">Техподдержка</div><div class="pdesc">Доб. номер: 0147</div></div>
+    <div class="arrow">›</div>
+  </a>
+</div>
+
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <div class="card-icon yellow">📌</div>
+    <div>
+      <div class="card-title">Памятка</div>
+      <div class="card-subtitle">Обращения в техподдержку</div>
+    </div>
+  </div>
+  <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+    В письме укажите:<br>
+    • ФИО и подразделение<br>
+    • Описание проблемы<br>
+    • Приложите скриншот
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- === MORE === -->
+
+  <div class="section" id="sec-more">
+    <div class="greeting">
+      <h2>Ещё</h2>
+      <p>Дополнительные инструменты</p>
+    </div>
+
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon blue">📅</div>
+    <div><div class="card-title">Налоговый календарь</div><div class="card-subtitle">Ключевые даты и сроки</div></div>
+  </div>
+  <div id="taxCalendar" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon green">🤖</div>
+    <div><div class="card-title">Орион 2.0</div><div class="card-subtitle">ИИ-бухгалтер</div></div>
+  </div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:14px;">
+    Профессиональный бухгалтерский помощник. Отвечает на вопросы по НДС, НДФЛ, страховым взносам, проводкам и налоговому учёту.
+  </div>
+  <div style="padding:14px;background:var(--accent);border-radius:30px;text-align:center;font-weight:800;cursor:pointer;" onclick="openChat()">
+    💬 Открыть чат с Орионом
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon pink">📱</div>
+    <div><div class="card-title">Установить на телефон</div><div class="card-subtitle">Добавить на рабочий стол</div></div>
+  </div>
+  <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+    <b style="color:var(--text);">iPhone Safari:</b><br>
+    Нажмите «Поделиться» → «На экран Домой»<br><br>
+    <b style="color:var(--text);">Android Chrome:</b><br>
+    Нажмите ⋮ → «Добавить на гл. экран»
+  </div>
+</div>
+
+
+  </div>
+
+</div>
+
+<!-- CHAT FAB -->
+
+<div class="chat-fab" onclick="openChat()">🤖</div>
+
+<!-- CHAT PANEL -->
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">Орион 2.0</div>
+      <div class="chat-header-status">Онлайн</div>
+    </div>
+    <div class="chat-close" onclick="closeChat()">✕</div>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-bubble bot">👋 Привет! Я <b>Орион 2.0</b> - бухгалтерский ИИ-помощник. Спрашивайте о налогах, проводках, отчётности!</div>
+  </div>
+  <div style="display:flex;gap:8px;padding:6px 16px 0;overflow-x:auto;" class="tips-scroll">
+    <div class="tip-chip" onclick="askOrion('Изменения НДС 2025')" style="font-size:12px;padding:8px 14px;">НДС 2025</div>
+    <div class="tip-chip" onclick="askOrion('Расчёт НДФЛ')" style="font-size:12px;padding:8px 14px;">НДФЛ</div>
+    <div class="tip-chip" onclick="askOrion('Что такое ЕНС')" style="font-size:12px;padding:8px 14px;">ЕНС</div>
+    <div class="tip-chip" onclick="askOrion('Сроки сдачи РСВ')" style="font-size:12px;padding:8px 14px;">РСВ</div>
+  </div>
+  <div class="chat-input-bar">
+    <input class="chat-input" id="chatInput" placeholder="Задайте вопрос..." onkeydown="if(event.key==='Enter')sendChat()">
+    <div class="chat-send" onclick="sendChat()">➤</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('dashboard')">
+    <div class="nav-icon">📊</div>
+    <span>Главная</span>
+    <div class="nav-dot"></div>
+  </div>
+  <div class="nav-item" onclick="switchTab('calc')">
+    <div class="nav-icon">🧮</div>
+    <span>Расчёты</span>
+    <div class="nav-dot"></div>
+  </div>
+  <div class="nav-item" onclick="switchTab('portals')">
+    <div class="nav-icon">🔗</div>
+    <span>Порталы</span>
+    <div class="nav-dot"></div>
+  </div>
+  <div class="nav-item" onclick="switchTab('more')">
+    <div class="nav-icon">⚙️</div>
+    <span>Ещё</span>
+    <div class="nav-dot"></div>
+  </div>
+</div>
+
+<script>
+// === CLOCK ===
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+// === GREETING ===
+(function() {
+  const h = new Date().getHours();
+  let g = 'Доброй ночи!';
+  if (h >= 5 && h < 12) g = 'Доброе утро!';
+  else if (h >= 12 && h < 18) g = 'Добрый день!';
+  else if (h >= 18 && h < 23) g = 'Добрый вечер!';
+  document.getElementById('greetText').textContent = g;
+})();
+
+// === HOLIDAYS ===
+(function() {
+  const holidays = [
+    {m:1,d:1,name:'Новый год!',emoji:'🎄'},
+    {m:1,d:7,name:'Рождество Христово',emoji:'⭐'},
+    {m:2,d:23,name:'День защитника Отечества',emoji:'🎖️'},
+    {m:3,d:8,name:'Международный женский день',emoji:'🌷'},
+    {m:5,d:1,name:'Праздник Весны и Труда',emoji:'🌸'},
+    {m:5,d:9,name:'День Победы',emoji:'🎗️'},
+    {m:6,d:12,name:'День России',emoji:'🇷🇺'},
+    {m:11,d:4,name:'День народного единства',emoji:'🤝'},
+  ];
+  const now = new Date(), m = now.getMonth()+1, d = now.getDate();
+  let next = null, minDiff = 400;
+  holidays.forEach(h => {
+    let diff = (h.m - m) * 30 + (h.d - d);
+    if (diff < 0) diff += 365;
+    if (diff < minDiff) { minDiff = diff; next = h; }
+  });
+  if (next && minDiff <= 7) {
+    document.getElementById('holidayBanner').style.display = 'flex';
+    document.getElementById('holidayEmoji').textContent = next.emoji;
+    document.getElementById('holidayName').textContent = next.name;
+    document.getElementById('holidayDate').textContent = minDiff === 0 ? 'Сегодня!' : `Через ${minDiff} дн.`;
+  }
+})();
+
+// === TAX CALENDAR ===
+(function() {
+  const events = [
+    {date:'25 января',desc:'Уплата НДС за 4 кв.'},
+    {date:'28 января',desc:'Уплата налога на прибыль'},
+    {date:'25 февраля',desc:'6-НДФЛ за год'},
+    {date:'25 апреля',desc:'Уплата НДС за 1 кв.'},
+    {date:'28 апреля',desc:'Налог на прибыль за 1 кв.'},
+    {date:'25 июля',desc:'Уплата НДС за 2 кв.'},
+    {date:'25 октября',desc:'Уплата НДС за 3 кв.'},
+    {date:'28 марта',desc:'Декларация по прибыли за год'},
+  ];
+  const container = document.getElementById('taxCalendar');
+  events.slice(0,5).forEach(e => {
+    container.innerHTML += `<div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--card-border);">
+      <div style="font-size:12px;color:var(--accent);font-weight:800;white-space:nowrap;min-width:70px;">${e.date}</div>
+      <div style="font-size:13px;color:var(--text2);">${e.desc}</div>
+    </div>`;
+  });
+})();
+
+// === EXCHANGE RATES (mock since no API in offline) ===
+(function() {
+  document.getElementById('rateUSD').textContent = '82,45';
+  document.getElementById('rateEUR').textContent = '89,72';
+  document.getElementById('rateCNY').textContent = '11,38';
+  document.getElementById('rateDate').textContent = new Date().toLocaleDateString('ru-RU');
+})();
+
+// === NAVIGATION ===
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n,i) => {
+    n.classList.toggle('active', ['dashboard','calc','portals','more'][i] === tab);
+  });
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// === CALCULATOR: NDS ===
+let ndsRate = 22, ndsType = 'add';
+function setNdsRate(r) {
+  ndsRate = r;
+  document.querySelectorAll('#ndsRates .rate-pill').forEach(p => p.classList.toggle('active', parseInt(p.textContent) === r));
+  calcNDS();
+}
+function setNdsType(t) {
+  ndsType = t;
+  document.getElementById('ndsTypeAdd').classList.toggle('active', t === 'add');
+  document.getElementById('ndsTypeExtract').classList.toggle('active', t === 'extract');
+  calcNDS();
+}
+function calcNDS() {
+  const sum = parseFloat(document.getElementById('ndsSum').value) || 0;
+  let nds, total;
+  if (ndsType === 'add') {
+    nds = sum * ndsRate / 100;
+    total = sum + nds;
+  } else {
+    nds = sum * ndsRate / (100 + ndsRate);
+    total = sum;
+  }
+  document.getElementById('ndsResult').textContent = fmt(nds) + ' ₽';
+  document.getElementById('ndsTotal').textContent = (ndsType === 'add' ? 'Итого с НДС: ' : 'Сумма без НДС: ') + fmt(ndsType === 'add' ? total : sum - nds) + ' ₽';
+}
+
+// === CALCULATOR: NDFL ===
+let ndflRate = 13;
+function setNdflRate(r) {
+  ndflRate = r;
+  document.querySelectorAll('#ndflRates .rate-pill').forEach(p => p.classList.toggle('active', parseInt(p.textContent) === r));
+  calcNDFL();
+}
+function calcNDFL() {
+  const sum = parseFloat(document.getElementById('ndflSum').value) || 0;
+  const tax = sum * ndflRate / 100;
+  document.getElementById('ndflResult').textContent = fmt(tax) + ' ₽';
+  document.getElementById('ndflNet').textContent = 'На руки: ' + fmt(sum - tax) + ' ₽';
+}
+
+// === CALCULATOR: INSURANCE ===
+let insRate = 30;
+function setInsRate(r) {
+  insRate = r;
+  document.querySelectorAll('#insRates .rate-pill').forEach(p => p.classList.toggle('active', parseInt(p.textContent) === r));
+  calcIns();
+}
+function calcIns() {
+  const sum = parseFloat(document.getElementById('insSum').value) || 0;
+  const ins = sum * insRate / 100;
+  document.getElementById('insResult').textContent = fmt(ins) + ' ₽';
+  document.getElementById('insTotal').textContent = 'Нагрузка: ' + fmt(sum + ins) + ' ₽';
+}
+
+// === CALCULATOR: PROFIT ===
+function calcProfit() {
+  const rev = parseFloat(document.getElementById('profitRev').value) || 0;
+  const exp = parseFloat(document.getElementById('profitExp').value) || 0;
+  const profit = rev - exp;
+  const margin = rev > 0 ? (profit / rev * 100) : 0;
+  document.getElementById('profitResult').textContent = fmt(profit) + ' ₽';
+  document.getElementById('profitMargin').textContent = 'Маржа: ' + margin.toFixed(2).replace('.', ',') + ' %';
+}
+
+function showCalc(id) {
+  ['nds','ndfl','insurance','profit'].forEach(c => {
+    document.getElementById('calc-' + c).style.display = c === id ? 'block' : 'none';
+    const tab = document.getElementById('tab-' + c);
+    if (tab) {
+      tab.style.background = c === id ? 'var(--accent)' : '';
+      tab.style.color = c === id ? '#fff' : '';
+      tab.classList.toggle('active', c === id);
+    }
+  });
+}
+
+function fmt(n) {
+  return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ').replace('.', ',');
+}
+
+// === CHAT ===
+function openChat() {
+  document.getElementById('chatPanel').classList.add('open');
+  document.getElementById('chatInput').focus();
+}
+function closeChat() {
+  document.getElementById('chatPanel').classList.remove('open');
+}
+function askOrion(q) {
+  openChat();
+  setTimeout(() => {
+    document.getElementById('chatInput').value = q;
+    sendChat();
+  }, 300);
+}
+
+const botResponses = {
+  'ндс': '📋 <b>НДС (налог на добавленную стоимость)</b> - косвенный налог. С 2025 года базовая ставка составляет 22%. Также действуют ставки 10% (продукты, детские товары) и 5% (ряд категорий). Декларация подаётся ежеквартально до 25 числа месяца, следующего за кварталом.',
+  'ндфл': '📋 <b>НДФЛ</b> - налог на доходы физических лиц. Базовая ставка 13%, для доходов свыше 5 млн ₽ в год - 15%. Удерживается работодателем при выплате зарплаты. 6-НДФЛ сдаётся ежеквартально.',
+  'енс': '📋 <b>ЕНС (Единый налоговый счёт)</b> - с 2023 года все налоги и взносы уплачиваются единым платежом на один счёт в ФНС. Распределение происходит автоматически на основе деклараций и уведомлений.',
+  'взнос': '📋 <b>Страховые взносы</b> - в 2025 году единый тариф 30% (в пределах лимита). Для МСП - 15% с сумм превышающих МРОТ. Уплата - ежемесячно до 28 числа.',
+  'проводк': '📋 <b>Проводки по зарплате:</b><br>Дт 20/26/44 - Кт 70 (начисление)<br>Дт 70 - Кт 68 (удержание НДФЛ)<br>Дт 20/26/44 - Кт 69 (начисление взносов)<br>Дт 70 - Кт 51 (выплата на р/с)',
+  'ефс': '📋 <b>ЕФС-1</b> - единая форма сведений, объединяет СЗВ-ТД, СЗВ-СТАЖ, ДСВ-3 и 4-ФСС. Подраздел 1.1 (кадровые) - при каждом событии, подраздел 1.2 - ежегодно до 25 января, раздел 2 - ежеквартально до 25 числа.',
+  'рсв': '📋 <b>РСВ (расчёт по страховым взносам)</b> - сдаётся ежеквартально до 25 числа месяца, следующего за кварталом. С 2023 года подаётся в ФНС (ранее - в ПФР).',
+};
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const body = document.getElementById('chatBody');
+  body.innerHTML += `<div class="chat-bubble user">${escapeHtml(text)}</div>`;
+
+  setTimeout(() => {
+    const lower = text.toLowerCase();
+    let reply = '🤔 Интересный вопрос! К сожалению, в оффлайн-режиме я могу ответить только на базовые вопросы. Для полноценной работы с Орионом перейдите на <b>ypr1.ru</b>';
+    for (const [key, val] of Object.entries(botResponses)) {
+      if (lower.includes(key)) { reply = val; break; }
+    }
+    body.innerHTML += `<div class="chat-bubble bot">${reply}</div>`;
+    body.scrollTop = body.scrollHeight;
+  }, 600);
+
+  body.scrollTop = body.scrollHeight;
+}
+
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+</script>
+
+
+<script>
+if("serviceWorker" in navigator){navigator.serviceWorker.register("/app/sw.js").catch(()=>{});}
+</script>
+</body>
+</html>

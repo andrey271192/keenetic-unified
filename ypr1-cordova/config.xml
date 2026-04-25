@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget id="ru.ypr1.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
+  <name>ЦБ МО</name>
+  <description>ЦБ МО | Управление №1 — мобильный помощник бухгалтера</description>
+  <author email="support@ypr1.ru" href="https://ypr1.ru">Управление №1</author>
+
+  <content src="index.html" />
+
+  <access origin="*" />
+  <allow-intent href="http://*/*" />
+  <allow-intent href="https://*/*" />
+  <allow-intent href="tel:*" />
+  <allow-intent href="mailto:*" />
+
+  <preference name="Orientation" value="portrait" />
+  <preference name="android-minSdkVersion" value="24" />
+  <preference name="android-targetSdkVersion" value="33" />
+</widget>
+
