@@ -16,6 +16,7 @@ domen_hydra_new/
 domen_hydra/
 _tmp_kdns/
 _tmp_ssh/
+_domen_hydra_work/
 keenetic-dns-routes/
 
 # Отдельный проект (свой репозиторий), не часть keenetic-unified
