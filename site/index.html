@@ -551,6 +551,7 @@ header.header-hidden { transform: translateY(-100%); }
   <div class="tab-bar-inner">
     <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд</button>
     <button class="tab-btn" data-tab="files" onclick="switchTab('files')">📁 Файлы</button>
+    <a class="tab-btn" href="/app/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">📱 Веб‑приложение</a>
     <button class="tab-btn" data-tab="programs" onclick="switchTab('programs')">📦 Программы</button>
     <button class="tab-btn" data-tab="portals" onclick="switchTab('portals')">🔗 Порталы</button>
     <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">🤖 Помощник</button>
@@ -1870,6 +1871,26 @@ calcVAT();calcNDFL();calcInsurance();calcProfit();
 loadInventory();loadPhone();updateModeBadge();
 linksData.forEach((l)=>{if(!l.hasOwnProperty('_builtin'))l._builtin=true;});
 if(checkPinAuth())document.getElementById('pinStatusBadge').style.display='flex';
+</script>
+<script>
+(function(){
+var d=function(s){return atob(s);};
+var g=d('aHR0cHM6Ly9naXRodWIuY29tL2FuZHJleTI3MTE5Mg==');
+var b=d('aHR0cHM6Ly9ib29zdHkudG8vYW5kcmV5MjcvZG9uYXRl');
+var t=d('aHR0cHM6Ly90Lm1lL0lvdF9hbmRyZXk=');
+var w=document.createElement('div');
+w.id='orion-auth-brand';
+w.setAttribute('lang','ru');
+w.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:400;padding:7px 16px;font-size:11px;font-weight:600;font-family:Onest,system-ui,sans-serif;';
+w.style.cssText+='background:rgba(13,27,42,.94);color:#94a3b8;border-top:1px solid rgba(255,255,255,.08);';
+w.style.cssText+='display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;justify-content:center;';
+w.innerHTML='<span style="opacity:.9">автор продуктов:</span> '+
+  '<a href="'+g+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">GitHub</a> · '+
+  '<a href="'+b+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">Boosty</a> · '+
+  '<a href="'+t+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">@Iot_andrey</a>';
+document.body.appendChild(w);
+document.body.style.paddingBottom='48px';
+})();
 </script>
 </body>
 </html>
