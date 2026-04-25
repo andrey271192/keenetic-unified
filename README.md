@@ -480,10 +480,9 @@ Remove-Item "$env:LOCALAPPDATA\keenetic-unified" -Recurse -Force
 
 ## Поддержка проекта
 
-Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate) и [поддержкой проекта через Ozon Bank (СБП)](https://finance.ozon.ru/apps/sbp/ozonbankpay/019dc200-2a5d-7931-a619-782d285f6798). На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через [`.github/FUNDING.yml`](.github/FUNDING.yml) — там Boosty и Ozon).
+Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate) и [поддержкой проекта через Ozon Bank (СБП)](https://finance.ozon.ru/apps/sbp/ozonbankpay/019dc200-2a5d-7931-a619-782d285f6798). 
 
 **Связь:** [Telegram @Iot_andrey](https://t.me/Iot_andrey) — вопросы и обратная связь.
 
 **Исходники и профиль:** [GitHub — andrey271192](https://github.com/andrey271192).
 
-В веб-дашборде ссылки автора (GitHub, Boosty, «Поддержка» → Ozon, Telegram) подключаются из `server/author_brand.py` (в `.env` можно только переопределить username Telegram).
