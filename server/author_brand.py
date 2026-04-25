@@ -1,5 +1,8 @@
 """Системный блок «автор продукта»: GitHub, Boosty, Ozon Bank (СБП), Telegram.
-URL не в шаблонах в открытом виде (b64 + сборка в рантайме)."""
+URL не в шаблонах в открытом виде (b64 + сборка в рантайме).
+
+Стили только inline — без тега <style>, чтобы парсер/дубликаты id не могли
+вывести CSS как текст на странице."""
 
 from __future__ import annotations
 
@@ -17,26 +20,34 @@ _OZ = _u(
     "aHR0cHM6Ly9maW5hbmNlLm96b24ucnUvYXBwcy9zYnAvb3pvbmJhbmtwYXkvMDE5ZGMyMDAtMmE1ZC03OTMxLWE2MTktNzgyZDI4NWY2Nzk4"
 )
 
+_WRAP = (
+    "position:fixed;bottom:10px;left:12px;z-index:90;max-width:min(96vw,720px);"
+    "font-size:11px;font-weight:600;letter-spacing:.02em;color:#86868b;opacity:.92;"
+    "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+    "display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;line-height:1.3"
+)
+_LBL = "color:#6e6e73;font-weight:500;margin-right:2px"
+_A = (
+    "color:#a1a1a6;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.12)"
+)
+_DOT = "color:#86868b;user-select:none"
+
 
 def brand_bar_html(telegram_username: str) -> str:
     u = (telegram_username or "Iot_andrey").lstrip("@")
     tg = f"https://t.me/{u}"
     safe_u = html.escape(u, quote=True)
     return (
-        "<style id=\"ku-brand\">#ku-brand{position:fixed;bottom:10px;left:12px;z-index:90;"
-        "max-width:min(96vw,720px);font-size:11px;font-weight:600;letter-spacing:.02em;"
-        "color:#86868b;opacity:.92;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
-        "display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;line-height:1.3}"
-        "#ku-brand a{color:#a1a1a6;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.12);"
-        "transition:color .15s,border-color .15s}"
-        "#ku-brand a:hover{color:#0a84ff;border-bottom-color:#0a84ff}"
-        "#ku-brand .ku-l{color:#6e6e73;font-weight:500;margin-right:2px}</style>"
-        '<div id="ku-brand" lang="ru"><span class="ku-l">автор:</span>'
-        f'<a href="{_GH}" target="_blank" rel="noopener noreferrer">GitHub</a><span>·</span>'
-        f'<a href="{_BZ}" target="_blank" rel="noopener noreferrer">Boosty</a><span>·</span>'
-        f'<a href="{_OZ}" target="_blank" rel="noopener noreferrer" title="Поддержка проекта (Ozon Bank, СБП)">'
-        "Поддержка</a><span>·</span>"
-        f'<a href="{html.escape(tg, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'<div id="ku-brand" lang="ru" style="{_WRAP}">'
+        f'<span style="{_LBL}">автор:</span>'
+        f'<a href="{_GH}" target="_blank" rel="noopener noreferrer" style="{_A}">GitHub</a>'
+        f'<span style="{_DOT}">·</span>'
+        f'<a href="{_BZ}" target="_blank" rel="noopener noreferrer" style="{_A}">Boosty</a>'
+        f'<span style="{_DOT}">·</span>'
+        f'<a href="{_OZ}" target="_blank" rel="noopener noreferrer" title="Поддержка проекта (Ozon Bank, СБП)" style="{_A}">'
+        "Поддержка</a>"
+        f'<span style="{_DOT}">·</span>'
+        f'<a href="{html.escape(tg, quote=True)}" target="_blank" rel="noopener noreferrer" style="{_A}">'
         f"@{safe_u}</a></div>"
     )
 
