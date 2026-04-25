@@ -463,11 +463,16 @@ Remove-Item "$env:LOCALAPPDATA\keenetic-unified" -Recurse -Force
 |-------------|------------|
 | [domen_hydra](https://github.com/andrey271192/domen_hydra) | Только веб-управление доменами HydraRoute Neo + push на роутеры |
 | [Keenetic_SSH](https://github.com/andrey271192/Keenetic_SSH) | Только Telegram-бот и SSH на роутеры (без дашборда и мониторинга) |
+| [keenetic-dns-routes](https://github.com/andrey271192/keenetic-dns-routes) | Веб-управление встроенными DNS-списками KeeneticOS (без Neo), отдельный сервис |
 
 ---
 
 ## Поддержка проекта
 
-Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate). На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через `.github/FUNDING.yml`).
+Если проект полезен — можно поддержать развитие на [Boosty](https://boosty.to/andrey27/donate) и [поддержкой проекта через Ozon Bank (СБП)](https://finance.ozon.ru/apps/sbp/ozonbankpay/019dc200-2a5d-7931-a619-782d285f6798). На странице репозитория на GitHub также доступна кнопка **Sponsor** (настраивается через [`.github/FUNDING.yml`](.github/FUNDING.yml) — там Boosty и Ozon).
 
 **Связь:** [Telegram @Iot_andrey](https://t.me/Iot_andrey) — вопросы и обратная связь.
+
+**Исходники и профиль:** [GitHub — andrey271192](https://github.com/andrey271192).
+
+В веб-дашборде ссылки автора (GitHub, Boosty, «Поддержка» → Ozon, Telegram) подключаются из `server/author_brand.py` (в `.env` можно только переопределить username Telegram).
