@@ -33,6 +33,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Onest',sans-serif;background:#f0f4fa;color:var(--text);min-height:100vh;}
+body.no-scroll{position:fixed;left:0;right:0;top:0;overflow:hidden;width:100%;}
 a{text-decoration:none;color:inherit;}
 
 /* HEADER */
@@ -431,8 +432,8 @@ header.header-hidden { transform: translateY(-100%); }
 .chat-widget{position:fixed;right:24px;bottom:90px;z-index:2500;font-family:'Onest',sans-serif;}
 .chat-widget.overlay{
   inset:0;right:0;bottom:0;left:0;top:0;
-  background:rgba(0,0,0,0.35);
-  display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,0.55);
+  display:flex;align-items:stretch;justify-content:center;
   padding:16px;
 }
 .chat-widget.minimized .chat-win{transform:scale(0) translateY(20px);opacity:0;pointer-events:none;}
@@ -1391,6 +1392,18 @@ document.getElementById('tgForm').onsubmit=async(e)=>{
 // =========================================
 let chatOpen=false,currentMode='general',waiting=false;
 let inventoryData=[],phoneData=[];
+let _scrollLockY=0;
+
+function lockBodyScroll(){
+  _scrollLockY=window.scrollY||0;
+  document.body.classList.add('no-scroll');
+  document.body.style.top=(-_scrollLockY)+'px';
+}
+function unlockBodyScroll(){
+  document.body.classList.remove('no-scroll');
+  document.body.style.top='';
+  window.scrollTo(0,_scrollLockY||0);
+}
 
 function openChat(){
   const w=document.getElementById('chatWidget');
@@ -1399,7 +1412,7 @@ function openChat(){
   chatOpen=true;
   w.classList.remove('minimized');
   w.classList.add('overlay');
-  document.body.style.overflow='hidden';
+  lockBodyScroll();
   document.getElementById('chatToggle').textContent='−';
   document.getElementById('quickActions').style.display='flex';
   setTimeout(()=>document.getElementById('chatInput').focus(),50);
@@ -1409,7 +1422,7 @@ function closeChat(){
   chatOpen=false;
   const w=document.getElementById('chatWidget');
   w.classList.remove('overlay');
-  document.body.style.overflow='';
+  unlockBodyScroll();
 }
 function minimizeChat(){
   document.getElementById('chatWin').classList.remove('open');
@@ -1417,10 +1430,18 @@ function minimizeChat(){
   const w=document.getElementById('chatWidget');
   w.classList.remove('overlay');
   w.classList.add('minimized');
-  document.body.style.overflow='';
+  unlockBodyScroll();
   document.getElementById('chatToggle').textContent='+';
 }
 function toggleChatMinimize(e){e.stopPropagation();if(document.getElementById('chatWidget').classList.contains('minimized')){openChat();}else{minimizeChat();}}
+
+// Close chat by tapping the dimmed backdrop
+document.getElementById('chatWidget').addEventListener('click',(e)=>{
+  const w=document.getElementById('chatWidget');
+  if(w.classList.contains('overlay') && e.target===w){
+    closeChat();
+  }
+});
 
 function addMsg(text,cls){const div=document.createElement('div');div.className='msg '+cls;div.innerHTML=text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code style="background:#f1f5f9;padding:1px 4px;border-radius:4px;font-size:0.85em">$1</code>');document.getElementById('chatMsgs').appendChild(div);document.getElementById('chatMsgs').scrollTop=99999;return div;}
 let typingEl=null;
@@ -1908,7 +1929,9 @@ if(checkPinAuth())document.getElementById('pinStatusBadge').style.display='flex'
 (function(){
 var d=function(s){return atob(s);};
 var g=d('aHR0cHM6Ly9naXRodWIuY29tL2FuZHJleTI3MTE5Mg==');
+var r=d('aHR0cHM6Ly9naXRodWIuY29tL2FuZHJleTI3MTE5Mi9rZWVuZXRpYy11bmlmaWVk');
 var b=d('aHR0cHM6Ly9ib29zdHkudG8vYW5kcmV5MjcvZG9uYXRl');
+var o=d('aHR0cHM6Ly9maW5hbmNlLm96b24ucnUvYXBwcy9zYnAvb3pvbmJhbmtwYXkvMDE5ZGMyMDAtMmE1ZC03OTMxLWE2MTktNzgyZDI4NWY2Nzk4');
 var t=d('aHR0cHM6Ly90Lm1lL0lvdF9hbmRyZXk=');
 var w=document.createElement('div');
 w.id='orion-auth-brand';
@@ -1917,8 +1940,9 @@ w.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:400;padding:7px 
 w.style.cssText+='background:rgba(13,27,42,.94);color:#94a3b8;border-top:1px solid rgba(255,255,255,.08);';
 w.style.cssText+='display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;justify-content:center;';
 w.innerHTML='<span style="opacity:.9">автор продуктов:</span> '+
-  '<a href="'+g+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">GitHub</a> · '+
+  '<a href="'+r+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">GitHub (repo)</a> · '+
   '<a href="'+b+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">Boosty</a> · '+
+  '<a href="'+o+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">Ozon SBP</a> · '+
   '<a href="'+t+'" target="_blank" rel="noopener" style="color:#e2e8f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.25)">@Iot_andrey</a>';
 document.body.appendChild(w);
 document.body.style.paddingBottom='48px';
