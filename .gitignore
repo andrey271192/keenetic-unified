@@ -13,6 +13,7 @@ openai-gpt-image-mcp/
 # Standalone sibling repo (separate git remote)
 Keenetic_SSH/
 domen_hydra_new/
+domen_hydra/
 keenetic-dns-routes/
 
 # Отдельный проект (свой репозиторий), не часть keenetic-unified
