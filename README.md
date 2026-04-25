@@ -432,21 +432,30 @@ keenetic-unified/
 
 ## Удаление
 
-**Сервер:**
+### Сервер (одной командой)
+
+Под **root** (остановка unit, удаление `keenetic-unified.service` и каталога **`/opt/keenetic-unified`**):
+
 ```bash
-systemctl stop keenetic-unified
-systemctl disable keenetic-unified
-rm -rf /opt/keenetic-unified
+curl -fsSL https://raw.githubusercontent.com/andrey271192/keenetic-unified/main/server/uninstall.sh | sudo bash
 ```
 
-**Роутер:**
+Если репозиторий ещё на диске:
+
 ```bash
-crontab -l | grep -v watchdog | crontab -
-rm -f /opt/bin/watchdog.sh /opt/bin/watchdog_heartbeat.sh /opt/bin/hydra_update.sh
-rm -f /opt/etc/server_url /opt/etc/router_name
+sudo bash /opt/keenetic-unified/server/uninstall.sh
 ```
 
-**Windows:**
+### Роутер (одной командой)
+
+Скрипт снимает cron watchdog / heartbeat / hydra_update и файлы в `/opt/bin`, `/opt/etc`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/andrey271192/keenetic-unified/main/router/uninstall.sh | sh
+```
+
+### Windows
+
 ```powershell
 schtasks /delete /tn "Keenetic-CheckSites" /f
 schtasks /delete /tn "Keenetic-Speedtest" /f
@@ -464,6 +473,8 @@ Remove-Item "$env:LOCALAPPDATA\keenetic-unified" -Recurse -Force
 | [domen_hydra](https://github.com/andrey271192/domen_hydra) | Только веб-управление доменами HydraRoute Neo + push на роутеры |
 | [Keenetic_SSH](https://github.com/andrey271192/Keenetic_SSH) | Только Telegram-бот и SSH на роутеры (без дашборда и мониторинга) |
 | [keenetic-dns-routes](https://github.com/andrey271192/keenetic-dns-routes) | Веб-управление встроенными DNS-списками KeeneticOS (без Neo), отдельный сервис |
+
+В каждом из этих репозиториев в README есть блок **«Удаление с сервера (одной командой)»** — скрипт с GitHub останавливает systemd и удаляет каталог в `/opt/`.
 
 ---
 
